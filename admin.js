@@ -1,4 +1,5 @@
 const adminSessionKey = "dpunity.admin.session";
+const superRootAdminEmail = "hongocquocsang2721@gmail.com";
 
 const state = {
   users: [],
@@ -46,10 +47,19 @@ async function callApi(action, payload = {}) {
     throw new Error("Chua cau hinh Google Apps Script Web App URL trong config.js.");
   }
 
+  const requestPayload = {
+    ...payload,
+    requester: state.adminUser ? {
+      id: state.adminUser.id,
+      email: state.adminUser.email,
+      role: state.adminUser.role
+    } : payload.requester
+  };
+
   const response = await fetch(apiUrl, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action, payload })
+    body: JSON.stringify({ action, payload: requestPayload })
   });
 
   if (!response.ok) {
@@ -65,7 +75,8 @@ async function callApi(action, payload = {}) {
 }
 
 function isAdminUser(user) {
-  return ["admin", "rootadmin"].includes(String(user?.role || "").toLowerCase());
+  return String(user?.email || "").toLowerCase() === superRootAdminEmail
+    && String(user?.role || "").toLowerCase() === "superrootadmin";
 }
 
 function showAdminShell(user) {
@@ -119,7 +130,7 @@ async function submitAdminLogin(event) {
     setLoginMessage("Dang kiem tra tai khoan...", "");
     const data = await callApi("login", { email, password });
     if (!isAdminUser(data.user)) {
-      setLoginMessage("Tai khoan nay khong co quyen vao trang Admin.", "error");
+      setLoginMessage("Chi SuperRootAdmin hongocquocsang2721@gmail.com moi co quyen vao trang Admin.", "error");
       return;
     }
 

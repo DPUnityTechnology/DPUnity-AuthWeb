@@ -1,3 +1,5 @@
+const SUPER_ROOT_ADMIN_EMAIL = "hongocquocsang2721@gmail.com";
+
 const SHEETS = {
   users: {
     name: "Users",
@@ -23,6 +25,24 @@ function doPost(event) {
     const action = body.action;
     const payload = body.payload || {};
     ensureDefaultPackages();
+    ensureSingleSuperRootAdmin();
+
+    const adminActions = [
+      "adminList",
+      "addUser",
+      "updateUser",
+      "deleteUser",
+      "addPackage",
+      "updatePackage",
+      "deletePackage",
+      "addCompany",
+      "updateCompany",
+      "deleteCompany"
+    ];
+
+    if (adminActions.includes(action)) {
+      requireSuperRootAdmin(payload.requester);
+    }
 
     const actions = {
       register: () => registerUser(payload),
@@ -57,7 +77,7 @@ function registerUser(payload) {
 }
 
 function addUser(payload) {
-  const user = createUser(payload, payload.role || "user");
+  const user = createUser(payload, normalizeRoleForEmail(payload.role || "user", payload.email));
   return { user: publicUser(user) };
 }
 
@@ -91,7 +111,7 @@ function createUser(payload, role) {
     email,
     passwordHash: hashPassword(password, salt),
     salt,
-    role,
+    role: normalizeRoleForEmail(role, email),
     createdAt: now,
     lastLoginAt: now
   };
@@ -115,7 +135,7 @@ function updateUser(payload) {
   const current = users[index];
   current.name = String(payload.name || "").trim();
   current.email = email;
-  current.role = String(payload.role || current.role || "user");
+  current.role = normalizeRoleForEmail(payload.role || current.role || "user", email);
 
   if (String(payload.password || "").length > 0) {
     if (String(payload.password).length < 8) {
@@ -154,6 +174,7 @@ function loginUser(payload) {
   }
 
   user.lastLoginAt = new Date().toISOString();
+  user.role = normalizeRoleForEmail(user.role || "user", user.email);
   writeRecord("users", index, user);
 
   return { user: publicUser(user) };
@@ -229,12 +250,21 @@ function deleteCompany(payload) {
 }
 
 function adminList() {
+  ensureSingleSuperRootAdmin();
   const users = readTable("users").map(publicUser);
   return {
     users,
     packages: readTable("packages"),
     companies: readTable("companies").map((company) => enrichCompany(company, users))
   };
+}
+
+function requireSuperRootAdmin(requester) {
+  const email = normalizeEmail(requester && requester.email);
+  const role = String(requester && requester.role || "").toLowerCase();
+  if (email !== SUPER_ROOT_ADMIN_EMAIL || role !== "superrootadmin") {
+    throw new Error("Only SuperRootAdmin can use admin actions.");
+  }
 }
 
 function listCompaniesForUser(payload) {
@@ -345,6 +375,26 @@ function ensureDefaultPackages() {
       });
     }
   });
+}
+
+function ensureSingleSuperRootAdmin() {
+  const users = readTable("users");
+  users.forEach((user, index) => {
+    const expectedRole = normalizeRoleForEmail(user.role || "user", user.email);
+    if (user.role !== expectedRole) {
+      user.role = expectedRole;
+      writeRecord("users", index, user);
+    }
+  });
+}
+
+function normalizeRoleForEmail(role, email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (normalizedEmail === SUPER_ROOT_ADMIN_EMAIL) {
+    return "superRootAdmin";
+  }
+
+  return String(role || "user").toLowerCase() === "superrootadmin" ? "user" : String(role || "user");
 }
 
 function getSheet(key) {
