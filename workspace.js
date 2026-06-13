@@ -60,10 +60,12 @@ async function loadWorkspace() {
     workspace = await callApi("getCompanyWorkspace", { companyId, userId: currentUser.id });
     els.companyName.textContent = workspace.company.name;
     els.user.textContent = `${currentUser.name || currentUser.email} - ${currentUser.email}`;
+    els.tabs.classList.remove("hidden");
     renderDashboard();
     if (workspace.hasWeb) {
-      els.tabs.classList.remove("hidden");
       await loadStickyNotes();
+    } else {
+      renderLockedStickyNotes();
     }
     setMessage("");
   } catch (error) {
@@ -72,12 +74,21 @@ async function loadWorkspace() {
 }
 
 function renderDashboard() {
+  const packagePills = workspace.packages.length
+    ? workspace.packages.map((pack) => `<span class="pill">${escapeHtml(pack.code)}</span>`).join("")
+    : "<span class=\"pill muted-pill\">no package</span>";
+
   if (!workspace.hasWeb) {
     els.dashboardContent.innerHTML = `
       <article class="intro-panel">
         <h3>DPUnity Platform</h3>
         <p>Cong ty nay chua duoc kich hoat goi Web. Day la trang gioi thieu chung cho den khi admin them package <strong>web</strong>.</p>
       </article>
+      <div class="item-grid">
+        <article class="data-card"><h3>${workspace.stats.users}</h3><p class="muted">Thanh vien cong ty</p></article>
+        <article class="data-card"><h3>${workspace.stats.stickyNotes}</h3><p class="muted">Sticky notes</p></article>
+        <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Goi dang kich hoat</p><p class="pill-row">${packagePills}</p></article>
+      </div>
     `;
     return;
   }
@@ -86,12 +97,23 @@ function renderDashboard() {
     <div class="item-grid">
       <article class="data-card"><h3>${workspace.stats.users}</h3><p class="muted">Thanh vien cong ty</p></article>
       <article class="data-card"><h3>${workspace.stats.stickyNotes}</h3><p class="muted">Sticky notes</p></article>
-      <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Goi dang kich hoat</p><p class="pill-row">${workspace.packages.map((pack) => `<span class="pill">${escapeHtml(pack.code)}</span>`).join("")}</p></article>
+      <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Goi dang kich hoat</p><p class="pill-row">${packagePills}</p></article>
     </div>
   `;
 }
 
+function renderLockedStickyNotes() {
+  els.stickyForm.classList.add("hidden");
+  els.stickyList.innerHTML = `
+    <article class="intro-panel">
+      <h3>Sticky Note dang bi khoa</h3>
+      <p>Cong ty nay can duoc gan package <strong>web</strong> trong trang Admin de su dung tinh nang Sticky Note.</p>
+    </article>
+  `;
+}
+
 async function loadStickyNotes() {
+  els.stickyForm.classList.remove("hidden");
   const data = await callApi("listStickyNotes", { companyId, userId: currentUser.id });
   renderStickyNotes(data.notes || []);
 }
@@ -132,6 +154,11 @@ function editStickyNote(note) {
 
 async function submitStickyNote(event) {
   event.preventDefault();
+  if (!workspace?.hasWeb) {
+    setMessage("Cong ty can co package web de dung Sticky Note.", "error");
+    return;
+  }
+
   const formData = new FormData(els.stickyForm);
   const payload = Object.fromEntries(formData.entries());
   payload.companyId = companyId;
