@@ -11,15 +11,20 @@ const els = {
   message: document.querySelector("#workspaceMessage"),
   tabs: document.querySelector("#workspaceTabs"),
   dashboardView: document.querySelector("#dashboardView"),
+  peopleView: document.querySelector("#peopleView"),
   notesView: document.querySelector("#notesView"),
   dashboardContent: document.querySelector("#dashboardContent"),
   stickyForm: document.querySelector("#stickyForm"),
   resetStickyButton: document.querySelector("#resetStickyButton"),
-  stickyList: document.querySelector("#stickyList")
+  stickyList: document.querySelector("#stickyList"),
+  noteViewerList: document.querySelector("#noteViewerList"),
+  memberForm: document.querySelector("#memberForm"),
+  memberList: document.querySelector("#memberList")
 };
 
 let currentUser = null;
 let workspace = null;
+let companyMembers = [];
 
 function setMessage(text, type = "") {
   els.message.textContent = text;
@@ -61,6 +66,7 @@ async function loadWorkspace() {
     els.companyName.textContent = workspace.company.name;
     els.user.textContent = `${currentUser.name || currentUser.email} - ${currentUser.email}`;
     els.tabs.classList.remove("hidden");
+    await loadCompanyMembers();
     renderDashboard();
     if (workspace.hasWeb) {
       await loadStickyNotes();
@@ -71,6 +77,17 @@ async function loadWorkspace() {
   } catch (error) {
     setMessage(error.message, "error");
   }
+}
+
+async function loadCompanyMembers() {
+  const data = await callApi("listCompanyMembers", { companyId, userId: currentUser.id });
+  companyMembers = data.members || [];
+  renderMembers();
+  renderViewerChoices();
+}
+
+function isCompanyAdmin() {
+  return companyMembers.some((member) => member.userId === currentUser.id && member.role === "rootadmin");
 }
 
 function renderDashboard() {
@@ -114,6 +131,7 @@ function renderLockedStickyNotes() {
 
 async function loadStickyNotes() {
   els.stickyForm.classList.remove("hidden");
+  renderViewerChoices();
   const data = await callApi("listStickyNotes", { companyId, userId: currentUser.id });
   renderStickyNotes(data.notes || []);
 }
@@ -132,7 +150,7 @@ function renderStickyNotes(notes) {
           <h3>${escapeHtml(note.title || "Untitled")}</h3>
           <p>${escapeHtml(note.content)}</p>
         </div>
-        <small>${escapeHtml(note.visibility)} - ${escapeHtml(note.ownerName || "Unknown")}</small>
+        <small>${escapeHtml(formatNoteViewers(note))} - ${escapeHtml(note.ownerName || "Unknown")}</small>
         ${isOwner ? `<div class="button-row"><button class="secondary small" data-edit-note="${escapeHtml(note.id)}" type="button">Sua</button><button class="danger small" data-delete-note="${escapeHtml(note.id)}" type="button">Xoa</button></div>` : ""}
       </article>
     `;
@@ -148,8 +166,8 @@ function editStickyNote(note) {
   els.stickyForm.elements.id.value = note.id;
   els.stickyForm.elements.title.value = note.title || "";
   els.stickyForm.elements.color.value = note.color || "#fff7ad";
-  els.stickyForm.elements.visibility.value = note.visibility || "private";
   els.stickyForm.elements.content.value = note.content || "";
+  renderViewerChoices((note.viewers || []).map((viewer) => viewer.userId));
 }
 
 async function submitStickyNote(event) {
@@ -161,6 +179,7 @@ async function submitStickyNote(event) {
 
   const formData = new FormData(els.stickyForm);
   const payload = Object.fromEntries(formData.entries());
+  payload.viewerUserIds = getSelectedViewerIds();
   payload.companyId = companyId;
   payload.userId = currentUser.id;
   const action = payload.id ? "updateStickyNote" : "addStickyNote";
@@ -189,12 +208,129 @@ function resetStickyForm() {
   els.stickyForm.reset();
   els.stickyForm.elements.id.value = "";
   els.stickyForm.elements.color.value = "#fff7ad";
+  renderViewerChoices();
 }
 
 function showView(view) {
   document.querySelectorAll(".workspace-tabs .tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
   els.dashboardView.classList.toggle("hidden", view !== "dashboard");
+  els.peopleView.classList.toggle("hidden", view !== "people");
   els.notesView.classList.toggle("hidden", view !== "notes");
+}
+
+function renderViewerChoices(selectedIds = []) {
+  const selected = new Set(selectedIds);
+  const choices = companyMembers.filter((member) => member.userId !== currentUser.id);
+  if (!choices.length) {
+    els.noteViewerList.innerHTML = "<p class=\"muted\">Chua co nhan su khac trong cong ty.</p>";
+    return;
+  }
+
+  els.noteViewerList.innerHTML = choices.map((member) => `
+    <label class="check-item">
+      <input type="checkbox" name="viewerUserIds" value="${escapeHtml(member.userId)}" ${selected.has(member.userId) ? "checked" : ""}>
+      <span>${escapeHtml(member.name || member.email)}<br>${escapeHtml(member.email)}</span>
+    </label>
+  `).join("");
+}
+
+function getSelectedViewerIds() {
+  return [...els.noteViewerList.querySelectorAll("input[name='viewerUserIds']:checked")].map((input) => input.value);
+}
+
+function formatNoteViewers(note) {
+  const viewers = note.viewers || [];
+  if (!viewers.length && note.visibility === "company") return "Ca cong ty";
+  if (!viewers.length) return "Chi owner";
+  return `Duoc xem: ${viewers.map((viewer) => viewer.name || viewer.email).join(", ")}`;
+}
+
+function renderMembers() {
+  const canManage = isCompanyAdmin();
+  els.memberForm.classList.toggle("hidden", !canManage);
+
+  if (!companyMembers.length) {
+    els.memberList.innerHTML = "<p class=\"muted\">Chua co nhan su trong cong ty.</p>";
+    return;
+  }
+
+  els.memberList.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Ten</th>
+          <th>Email</th>
+          <th>Vai tro</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${companyMembers.map((member) => `
+          <tr>
+            <td>${escapeHtml(member.name || "")}</td>
+            <td>${escapeHtml(member.email || "")}</td>
+            <td>
+              ${canManage && member.userId !== currentUser.id
+                ? `<select data-member-role="${escapeHtml(member.userId)}">
+                    <option value="member" ${member.role === "member" ? "selected" : ""}>Member</option>
+                    <option value="rootadmin" ${member.role === "rootadmin" ? "selected" : ""}>Root admin</option>
+                  </select>`
+                : `<span class="pill">${escapeHtml(member.role)}</span>`}
+            </td>
+            <td class="actions">
+              ${canManage && member.userId !== currentUser.id && member.role !== "rootadmin"
+                ? `<button class="danger small" data-delete-member="${escapeHtml(member.userId)}" type="button">Xoa</button>`
+                : ""}
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function submitMember(event) {
+  event.preventDefault();
+  const formData = new FormData(els.memberForm);
+  const payload = Object.fromEntries(formData.entries());
+  payload.companyId = companyId;
+  payload.userId = currentUser.id;
+
+  try {
+    const data = await callApi("addCompanyMember", payload);
+    companyMembers = data.members || [];
+    els.memberForm.reset();
+    renderMembers();
+    renderViewerChoices();
+    setMessage("Da them thanh vien.", "success");
+  } catch (error) {
+    setMessage(error.message, "error");
+  }
+}
+
+async function updateMemberRole(memberUserId, role) {
+  try {
+    const data = await callApi("updateCompanyMember", { companyId, userId: currentUser.id, memberUserId, role });
+    companyMembers = data.members || [];
+    renderMembers();
+    renderViewerChoices();
+    setMessage("Da cap nhat vai tro.", "success");
+  } catch (error) {
+    setMessage(error.message, "error");
+  }
+}
+
+async function deleteMember(memberUserId) {
+  try {
+    const data = await callApi("deleteCompanyMember", { companyId, userId: currentUser.id, memberUserId });
+    companyMembers = data.members || [];
+    renderMembers();
+    renderViewerChoices();
+    await loadStickyNotes();
+    setMessage("Da xoa thanh vien khoi cong ty.", "success");
+  } catch (error) {
+    setMessage(error.message, "error");
+  }
 }
 
 function escapeHtml(value) {
@@ -211,9 +347,18 @@ document.querySelectorAll(".workspace-tabs .tab").forEach((tab) => {
 });
 els.stickyForm.addEventListener("submit", submitStickyNote);
 els.resetStickyButton.addEventListener("click", resetStickyForm);
+els.memberForm.addEventListener("submit", submitMember);
 els.stickyList.addEventListener("click", (event) => {
   const deleteButton = event.target.closest("[data-delete-note]");
   if (deleteButton) deleteStickyNote(deleteButton.dataset.deleteNote);
+});
+els.memberList.addEventListener("change", (event) => {
+  const roleInput = event.target.closest("[data-member-role]");
+  if (roleInput) updateMemberRole(roleInput.dataset.memberRole, roleInput.value);
+});
+els.memberList.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest("[data-delete-member]");
+  if (deleteButton) deleteMember(deleteButton.dataset.deleteMember);
 });
 
 loadWorkspace();
