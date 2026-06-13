@@ -287,6 +287,16 @@ select:focus {
   font-weight: 800;
 }
 
+.link-button {
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-weight: 800;
+  text-align: left;
+}
+
 .primary {
   margin-top: 4px;
   background: var(--accent);

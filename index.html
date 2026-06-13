@@ -41,6 +41,19 @@
           <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
           <label>Mat khau<input name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required></label>
           <button class="primary" type="submit">Dang nhap</button>
+          <button class="link-button" id="forgotPasswordButton" type="button">Quen mat khau?</button>
+        </form>
+
+        <form class="form" id="forgotPasswordForm" autocomplete="on">
+          <div class="form-head">
+            <h2>Quen mat khau</h2>
+            <p>Nhap email tai khoan. He thong se tao yeu cau de SuperRootAdmin dat lai mat khau.</p>
+          </div>
+          <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
+          <div class="button-row">
+            <button class="primary" type="submit">Gui yeu cau</button>
+            <button class="secondary" id="backToLoginButton" type="button">Quay lai</button>
+          </div>
         </form>
 
         <form class="form" id="registerForm" autocomplete="on">

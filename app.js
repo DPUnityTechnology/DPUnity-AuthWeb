@@ -5,6 +5,9 @@ const elements = {
   registerTab: document.querySelector("#registerTab"),
   loginForm: document.querySelector("#loginForm"),
   registerForm: document.querySelector("#registerForm"),
+  forgotPasswordForm: document.querySelector("#forgotPasswordForm"),
+  forgotPasswordButton: document.querySelector("#forgotPasswordButton"),
+  backToLoginButton: document.querySelector("#backToLoginButton"),
   dashboard: document.querySelector("#dashboard"),
   logoutButton: document.querySelector("#logoutButton"),
   message: document.querySelector("#message"),
@@ -40,6 +43,7 @@ function switchMode(mode) {
   elements.registerTab.setAttribute("aria-selected", String(!isLogin));
   elements.loginForm.classList.toggle("active", isLogin);
   elements.registerForm.classList.toggle("active", !isLogin);
+  elements.forgotPasswordForm.classList.remove("active");
   elements.dashboard.classList.remove("active");
   elements.companySection.classList.add("hidden");
   elements.featureSection.classList.add("hidden");
@@ -202,6 +206,13 @@ function escapeHtml(value) {
 elements.loginTab.addEventListener("click", () => switchMode("login"));
 elements.registerTab.addEventListener("click", () => switchMode("register"));
 elements.refreshCompaniesButton.addEventListener("click", loadCompanies);
+elements.forgotPasswordButton.addEventListener("click", () => {
+  elements.loginForm.classList.remove("active");
+  elements.registerForm.classList.remove("active");
+  elements.forgotPasswordForm.classList.add("active");
+  setMessage("");
+});
+elements.backToLoginButton.addEventListener("click", () => switchMode("login"));
 
 elements.companyList.addEventListener("click", (event) => {
   const button = event.target.closest(".choose-company");
@@ -247,6 +258,22 @@ elements.loginForm.addEventListener("submit", async (event) => {
     saveSession(data.user);
     showDashboard(data.user);
     setMessage("Dang nhap thanh cong.", "success");
+  } catch (error) {
+    setMessage(error.message, "error");
+  }
+});
+
+elements.forgotPasswordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(elements.forgotPasswordForm);
+  const email = normalizeEmail(String(formData.get("email")));
+
+  try {
+    setMessage("Dang gui yeu cau...", "");
+    const data = await callApi("requestPasswordReset", { email });
+    elements.forgotPasswordForm.reset();
+    switchMode("login");
+    setMessage(data.message || "Da gui yeu cau dat lai mat khau.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }

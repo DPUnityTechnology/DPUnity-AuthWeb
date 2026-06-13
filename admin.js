@@ -6,6 +6,7 @@ const state = {
   users: [],
   packages: [],
   companies: [],
+  passwordResetRequests: [],
   adminUser: null
 };
 
@@ -27,6 +28,7 @@ const els = {
   usersTable: document.querySelector("#usersTable"),
   packagesTable: document.querySelector("#packagesTable"),
   companiesTable: document.querySelector("#companiesTable"),
+  passwordResetTable: document.querySelector("#passwordResetTable"),
   rootAdminSelect: document.querySelector("#rootAdminSelect"),
   companyPackageChecks: document.querySelector("#companyPackageChecks")
 };
@@ -171,6 +173,7 @@ async function loadAdminData() {
     state.users = data.users || [];
     state.packages = data.packages || [];
     state.companies = data.companies || [];
+    state.passwordResetRequests = data.passwordResetRequests || [];
     renderAll();
     setMessage("Da tai du lieu.", "success");
   } catch (error) {
@@ -183,6 +186,7 @@ function renderAll() {
   renderPackages();
   renderCompanyControls();
   renderCompanies();
+  renderPasswordResetRequests();
 }
 
 function renderUsers() {
@@ -238,6 +242,20 @@ function renderCompanies() {
       </td>
     </tr>
   `).join("") || "<tr><td colspan=\"4\">Chua co cong ty.</td></tr>";
+}
+
+function renderPasswordResetRequests() {
+  els.passwordResetTable.innerHTML = state.passwordResetRequests.map((request) => `
+    <tr>
+      <td>${escapeHtml(request.email)}</td>
+      <td>${escapeHtml(request.userName || request.userId || "Khong tim thay user")}</td>
+      <td><span class="pill ${request.status === "resolved" ? "muted-pill" : ""}">${escapeHtml(request.status)}</span></td>
+      <td class="actions">
+        ${request.status === "resolved" ? "" : `<button class="secondary small" data-edit-reset-user="${escapeHtml(request.userId || "")}" type="button">Sua user</button>`}
+        ${request.status === "resolved" ? "" : `<button class="danger small" data-resolve-reset="${escapeHtml(request.id)}" type="button">Da xu ly</button>`}
+      </td>
+    </tr>
+  `).join("") || "<tr><td colspan=\"4\">Chua co yeu cau.</td></tr>";
 }
 
 async function submitUser(event) {
@@ -382,6 +400,12 @@ document.addEventListener("click", (event) => {
 
   const deleteCompanyButton = target.closest("[data-delete-company]");
   if (deleteCompanyButton) deleteRecord("deleteCompany", deleteCompanyButton.dataset.deleteCompany, "Da xoa cong ty.");
+
+  const editResetUserButton = target.closest("[data-edit-reset-user]");
+  if (editResetUserButton && editResetUserButton.dataset.editResetUser) editUser(editResetUserButton.dataset.editResetUser);
+
+  const resolveResetButton = target.closest("[data-resolve-reset]");
+  if (resolveResetButton) deleteRecord("resolvePasswordReset", resolveResetButton.dataset.resolveReset, "Da danh dau yeu cau da xu ly.");
 });
 
 window.addEventListener("load", initializeGoogleSignIn);
