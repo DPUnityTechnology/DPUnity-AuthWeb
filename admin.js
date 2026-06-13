@@ -1,4 +1,5 @@
 const adminSessionKey = "dpunity.admin.session";
+const adminTokenKey = "dpunity.admin.google_id_token";
 const superRootAdminEmail = "hongocquocsang2721@gmail.com";
 
 const state = {
@@ -30,7 +31,7 @@ const els = {
   companyPackageChecks: document.querySelector("#companyPackageChecks")
 };
 
-const config = window.DPUNITY_SHEETS_CONFIG || {};
+const config = window.DPUNITY_API_CONFIG || {};
 const apiUrl = config.apiUrl || "";
 const googleClientId = config.googleClientId || "";
 const isConfigured = Boolean(apiUrl && !apiUrl.includes("YOUR_"));
@@ -47,31 +48,27 @@ function setLoginMessage(text, type = "") {
 
 async function callApi(action, payload = {}) {
   if (!isConfigured) {
-    throw new Error("Chua cau hinh Google Apps Script Web App URL trong config.js.");
+    throw new Error("Chua cau hinh Cloudflare Worker API URL trong config.js.");
   }
 
   const requestPayload = {
     ...payload,
-    requester: state.adminUser ? {
-      id: state.adminUser.id,
-      email: state.adminUser.email,
-      role: state.adminUser.role
-    } : payload.requester
+    idToken: sessionStorage.getItem(adminTokenKey) || payload.idToken
   };
 
   const response = await fetch(apiUrl, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, payload: requestPayload })
   });
 
   if (!response.ok) {
-    throw new Error(`Google Sheets API loi HTTP ${response.status}`);
+    throw new Error(`API loi HTTP ${response.status}`);
   }
 
   const result = await response.json();
   if (!result.ok) {
-    throw new Error(result.error || "Google Sheets API tra ve loi.");
+    throw new Error(result.error || "API tra ve loi.");
   }
 
   return result.data;
@@ -95,6 +92,7 @@ function showAdminShell(user) {
 function showLoginShell(message = "") {
   state.adminUser = null;
   sessionStorage.removeItem(adminSessionKey);
+  sessionStorage.removeItem(adminTokenKey);
   els.loginPanel.classList.remove("hidden");
   els.adminHeader.classList.add("hidden");
   els.adminContent.classList.add("hidden");
@@ -133,6 +131,7 @@ async function submitGoogleAdminLogin(idToken) {
     }
 
     setLoginMessage("");
+    sessionStorage.setItem(adminTokenKey, idToken);
     showAdminShell(data.user);
   } catch (error) {
     setLoginMessage(error.message, "error");

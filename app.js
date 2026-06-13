@@ -1,4 +1,4 @@
-const sessionKey = "dpunity.sheets.session";
+const sessionKey = "dpunity.api.session";
 
 const elements = {
   loginTab: document.querySelector("#loginTab"),
@@ -18,7 +18,7 @@ const elements = {
   selectedCompanyName: document.querySelector("#selectedCompanyName")
 };
 
-const config = window.DPUNITY_SHEETS_CONFIG || {};
+const config = window.DPUNITY_API_CONFIG || {};
 const apiUrl = config.apiUrl || "";
 const isConfigured = Boolean(apiUrl && !apiUrl.includes("YOUR_"));
 let currentUser = null;
@@ -61,33 +61,33 @@ function showDashboard(user) {
   loadCompanies();
 }
 
-function requireSheetsApi() {
+function requireApi() {
   if (isConfigured) {
     return true;
   }
 
-  setMessage("Chua cau hinh Google Apps Script Web App URL trong config.js.", "error");
+  setMessage("Chua cau hinh Cloudflare Worker API URL trong config.js.", "error");
   return false;
 }
 
-async function callSheetsApi(action, payload = {}) {
-  if (!requireSheetsApi()) {
+async function callApi(action, payload = {}) {
+  if (!requireApi()) {
     return null;
   }
 
   const response = await fetch(apiUrl, {
     method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, payload })
   });
 
   if (!response.ok) {
-    throw new Error(`Google Sheets API loi HTTP ${response.status}`);
+    throw new Error(`API loi HTTP ${response.status}`);
   }
 
   const result = await response.json();
   if (!result.ok) {
-    throw new Error(result.error || "Google Sheets API tra ve loi.");
+    throw new Error(result.error || "API tra ve loi.");
   }
 
   return result.data;
@@ -120,7 +120,7 @@ async function loadCompanies() {
   elements.featureSection.classList.add("hidden");
 
   try {
-    const data = await callSheetsApi("listCompaniesForUser", { userId: currentUser.id });
+    const data = await callApi("listCompaniesForUser", { userId: currentUser.id });
     renderCompanies(data.companies || []);
   } catch (error) {
     elements.companyList.innerHTML = `<p class="message error">${escapeHtml(error.message)}</p>`;
@@ -153,7 +153,7 @@ async function chooseCompany(companyId) {
   elements.featureContent.innerHTML = "<p class=\"muted\">Dang tai workspace...</p>";
 
   try {
-    const data = await callSheetsApi("getCompanyWorkspace", { companyId, userId: currentUser.id });
+    const data = await callApi("getCompanyWorkspace", { companyId, userId: currentUser.id });
     elements.selectedCompanyName.textContent = data.company.name;
     renderWorkspace(data);
   } catch (error) {
@@ -180,7 +180,7 @@ function renderWorkspace(data) {
       </article>
       <article class="data-card">
         <h3>User Workspace</h3>
-        <p class="muted">Khu vuc tinh nang se duoc mo rong theo package trong Google Sheet.</p>
+        <p class="muted">Khu vuc tinh nang se duoc mo rong theo package trong database.</p>
       </article>
       <article class="data-card">
         <h3>Enabled Packages</h3>
@@ -224,7 +224,7 @@ elements.registerForm.addEventListener("submit", async (event) => {
 
   try {
     setMessage("Dang tao tai khoan...", "");
-    const data = await callSheetsApi("register", { name, email, password });
+    const data = await callApi("register", { name, email, password });
     elements.registerForm.reset();
     saveSession(data.user);
     showDashboard(data.user);
@@ -242,7 +242,7 @@ elements.loginForm.addEventListener("submit", async (event) => {
 
   try {
     setMessage("Dang dang nhap...", "");
-    const data = await callSheetsApi("login", { email, password });
+    const data = await callApi("login", { email, password });
     elements.loginForm.reset();
     saveSession(data.user);
     showDashboard(data.user);
