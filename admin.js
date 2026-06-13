@@ -12,6 +12,8 @@ const els = {
   loginPanel: document.querySelector("#adminLoginPanel"),
   loginForm: document.querySelector("#adminLoginForm"),
   loginMessage: document.querySelector("#adminLoginMessage"),
+  googleSignInButton: document.querySelector("#googleSignInButton"),
+  googleFallbackButton: document.querySelector("#googleFallbackButton"),
   adminHeader: document.querySelector("#adminHeader"),
   adminContent: document.querySelector("#adminContent"),
   adminIdentity: document.querySelector("#adminIdentity"),
@@ -30,6 +32,7 @@ const els = {
 
 const config = window.DPUNITY_SHEETS_CONFIG || {};
 const apiUrl = config.apiUrl || "";
+const googleClientId = config.googleClientId || "";
 const isConfigured = Boolean(apiUrl && !apiUrl.includes("YOUR_"));
 
 function setMessage(text, type = "") {
@@ -120,26 +123,46 @@ function restoreAdminSession() {
   showLoginShell();
 }
 
-async function submitAdminLogin(event) {
-  event.preventDefault();
-  const formData = new FormData(els.loginForm);
-  const email = String(formData.get("email") || "").trim().toLowerCase();
-  const password = String(formData.get("password") || "");
-
+async function submitGoogleAdminLogin(idToken) {
   try {
-    setLoginMessage("Dang kiem tra tai khoan...", "");
-    const data = await callApi("login", { email, password });
+    setLoginMessage("Dang xac thuc Google...", "");
+    const data = await callApi("googleAdminLogin", { idToken });
     if (!isAdminUser(data.user)) {
       setLoginMessage("Chi SuperRootAdmin hongocquocsang2721@gmail.com moi co quyen vao trang Admin.", "error");
       return;
     }
 
-    els.loginForm.reset();
     setLoginMessage("");
     showAdminShell(data.user);
   } catch (error) {
     setLoginMessage(error.message, "error");
   }
+}
+
+function initializeGoogleSignIn() {
+  if (!googleClientId || googleClientId.includes("YOUR_")) {
+    setLoginMessage("Chua cau hinh googleClientId trong config.js.", "error");
+    return;
+  }
+
+  if (!window.google?.accounts?.id) {
+    setLoginMessage("Google Sign-In dang tai. Bam nut tai lai neu nut Google chua hien.", "");
+    return;
+  }
+
+  window.google.accounts.id.initialize({
+    client_id: googleClientId,
+    callback: (response) => submitGoogleAdminLogin(response.credential)
+  });
+
+  window.google.accounts.id.renderButton(els.googleSignInButton, {
+    theme: "outline",
+    size: "large",
+    width: 320,
+    text: "signin_with"
+  });
+
+  setLoginMessage("");
 }
 
 async function loadAdminData() {
@@ -330,7 +353,8 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-els.loginForm.addEventListener("submit", submitAdminLogin);
+els.loginForm.addEventListener("submit", (event) => event.preventDefault());
+els.googleFallbackButton.addEventListener("click", initializeGoogleSignIn);
 els.logoutButton.addEventListener("click", () => showLoginShell("Ban da dang xuat Admin."));
 els.refreshButton.addEventListener("click", loadAdminData);
 els.userForm.addEventListener("submit", submitUser);
@@ -361,4 +385,5 @@ document.addEventListener("click", (event) => {
   if (deleteCompanyButton) deleteRecord("deleteCompany", deleteCompanyButton.dataset.deleteCompany, "Da xoa cong ty.");
 });
 
+window.addEventListener("load", initializeGoogleSignIn);
 restoreAdminSession();

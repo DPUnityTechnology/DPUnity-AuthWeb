@@ -383,6 +383,18 @@ select:focus {
   gap: 18px;
 }
 
+.admin-login-panel {
+  width: min(460px, 100%);
+  margin: 48px auto 0;
+}
+
+.google-login {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
 .manager-panel {
   padding: 22px;
 }

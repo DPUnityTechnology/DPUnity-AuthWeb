@@ -47,6 +47,7 @@ function doPost(event) {
     const actions = {
       register: () => registerUser(payload),
       login: () => loginUser(payload),
+      googleAdminLogin: () => googleAdminLogin(payload),
       adminList: () => adminList(),
       addUser: () => addUser(payload),
       updateUser: () => updateUser(payload),
@@ -178,6 +179,67 @@ function loginUser(payload) {
   writeRecord("users", index, user);
 
   return { user: publicUser(user) };
+}
+
+function googleAdminLogin(payload) {
+  const tokenInfo = verifyGoogleIdToken(payload.idToken);
+  const email = normalizeEmail(tokenInfo.email);
+
+  if (email !== SUPER_ROOT_ADMIN_EMAIL) {
+    throw new Error("Only SuperRootAdmin Google account can sign in.");
+  }
+
+  let users = readTable("users");
+  let index = users.findIndex((item) => normalizeEmail(item.email) === email);
+  const now = new Date().toISOString();
+
+  if (index < 0) {
+    const user = {
+      id: Utilities.getUuid(),
+      name: tokenInfo.name || "SuperRootAdmin",
+      email,
+      passwordHash: "",
+      salt: "",
+      role: "superRootAdmin",
+      createdAt: now,
+      lastLoginAt: now
+    };
+    appendRecord("users", user);
+    return { user: publicUser(user) };
+  }
+
+  const user = users[index];
+  user.name = user.name || tokenInfo.name || "SuperRootAdmin";
+  user.role = "superRootAdmin";
+  user.lastLoginAt = now;
+  writeRecord("users", index, user);
+
+  return { user: publicUser(user) };
+}
+
+function verifyGoogleIdToken(idToken) {
+  if (!idToken) {
+    throw new Error("Missing Google credential.");
+  }
+
+  const response = UrlFetchApp.fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, {
+    muteHttpExceptions: true
+  });
+
+  if (response.getResponseCode() !== 200) {
+    throw new Error("Google credential is invalid.");
+  }
+
+  const tokenInfo = JSON.parse(response.getContentText());
+  if (normalizeEmail(tokenInfo.email) !== SUPER_ROOT_ADMIN_EMAIL) {
+    throw new Error("Only SuperRootAdmin Google account can sign in.");
+  }
+
+  if (String(tokenInfo.email_verified) !== "true") {
+    throw new Error("Google email is not verified.");
+  }
+
+  return tokenInfo;
 }
 
 function addPackage(payload) {

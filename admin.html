@@ -22,11 +22,10 @@
         <div class="form-head">
           <p class="eyebrow">Secure Admin</p>
           <h1>Dang nhap quan tri</h1>
-          <p>Chi duy nhat tai khoan <strong>hongocquocsang2721@gmail.com</strong> voi role <strong>superRootAdmin</strong> moi duoc vao trang nay.</p>
+          <p>Dang nhap bang Google. Chi duy nhat tai khoan <strong>hongocquocsang2721@gmail.com</strong> moi duoc vao trang nay.</p>
         </div>
-        <label>Email<input name="email" type="email" placeholder="admin@company.com" autocomplete="email" required></label>
-        <label>Mat khau<input name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required></label>
-        <button class="primary" type="submit">Dang nhap Admin</button>
+        <div class="google-login" id="googleSignInButton"></div>
+        <button class="secondary" id="googleFallbackButton" type="button">Tai nut dang nhap Google</button>
         <p class="message" id="adminLoginMessage" role="status" aria-live="polite"></p>
       </form>
     </section>
@@ -113,6 +112,7 @@
     </section>
   </main>
 
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="./config.js"></script>
   <script src="./admin.js"></script>
 </body>
