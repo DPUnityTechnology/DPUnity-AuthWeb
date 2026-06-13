@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DPUnity admin console">
+  <title>DPUnity Admin</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand-link" href="./admin.html">DPUnity Admin</a>
+      <nav>
+        <a href="./index.html">Portal</a>
+        <a href="./admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <section class="workspace">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Control Center</p>
+          <h1>Quan tri he thong</h1>
+        </div>
+        <button class="secondary" id="refreshButton" type="button">Tai lai</button>
+      </div>
+      <p class="message" id="adminMessage" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="admin-grid">
+      <article class="manager-panel">
+        <h2>User da dang ky</h2>
+        <form class="inline-form" id="userForm">
+          <input type="hidden" name="id">
+          <label>Ho ten<input name="name" type="text" required></label>
+          <label>Email<input name="email" type="email" required></label>
+          <label>Mat khau<input name="password" type="password" placeholder="Nhap khi tao hoac doi mat khau"></label>
+          <label>Role<input name="role" type="text" value="user"></label>
+          <div class="button-row">
+            <button class="primary" type="submit">Luu user</button>
+            <button class="secondary" type="button" data-reset-form="userForm">Moi</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th></th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="manager-panel">
+        <h2>Goi kich hoat</h2>
+        <form class="inline-form" id="packageForm">
+          <input type="hidden" name="id">
+          <label>Ten goi<input name="name" type="text" placeholder="Web" required></label>
+          <label>Code<input name="code" type="text" placeholder="web" required></label>
+          <label>Mo ta<input name="description" type="text" placeholder="Kich hoat tinh nang web"></label>
+          <div class="button-row">
+            <button class="primary" type="submit">Luu goi</button>
+            <button class="secondary" type="button" data-reset-form="packageForm">Moi</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Code</th><th>Description</th><th></th></tr></thead>
+            <tbody id="packagesTable"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="manager-panel wide">
+        <h2>Cong ty</h2>
+        <form class="inline-form company-form" id="companyForm">
+          <input type="hidden" name="id">
+          <label>Ten cong ty<input name="name" type="text" required></label>
+          <label>Root admin<select name="rootAdminUserId" id="rootAdminSelect"></select></label>
+          <fieldset>
+            <legend>Goi duoc kich hoat</legend>
+            <div class="check-grid" id="companyPackageChecks"></div>
+          </fieldset>
+          <div class="button-row">
+            <button class="primary" type="submit">Luu cong ty</button>
+            <button class="secondary" type="button" data-reset-form="companyForm">Moi</button>
+          </div>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Company</th><th>Root admin</th><th>Packages</th><th></th></tr></thead>
+            <tbody id="companiesTable"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./admin.js"></script>
+</body>
+</html>

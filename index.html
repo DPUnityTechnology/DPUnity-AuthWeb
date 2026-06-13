@@ -3,87 +3,89 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="DPUnity account access portal">
-  <title>DPUnity Account</title>
+  <meta name="description" content="DPUnity user portal">
+  <title>DPUnity Portal</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main class="shell">
-    <section class="brand-panel" aria-label="DPUnity">
-      <div class="brand-mark">DP</div>
-      <div>
-        <p class="eyebrow">DPUnity</p>
-        <h1>Account Portal</h1>
-        <p class="lead">Cong dang ky, dang nhap va quan ly phien truy cap dung chung du lieu tren Google Sheets.</p>
-      </div>
-      <div class="stats" aria-label="Security highlights">
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand-link" href="./index.html">DPUnity</a>
+      <nav>
+        <a href="./index.html">Portal</a>
+        <a href="./admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <section class="hero-grid">
+      <div class="brand-panel compact">
+        <div class="brand-mark">DP</div>
         <div>
-          <span>Google Sheets</span>
-          <small>Luu tai khoan trong mot spreadsheet dung chung</small>
-        </div>
-        <div>
-          <span>Shared</span>
-          <small>Tai khoan duoc luu online, dung chung giua cac thiet bi</small>
-        </div>
-        <div>
-          <span>Apps Script</span>
-          <small>Frontend goi Web App API tu GitHub Pages</small>
+          <p class="eyebrow">User Portal</p>
+          <h1>Company Workspace</h1>
+          <p class="lead">Dang ky, dang nhap, chon cong ty va hien thi tinh nang theo goi da kich hoat.</p>
         </div>
       </div>
+
+      <section class="auth-panel" aria-label="Authentication">
+        <div class="tabs" role="tablist" aria-label="Auth mode">
+          <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Dang nhap</button>
+          <button class="tab" id="registerTab" type="button" role="tab" aria-selected="false" aria-controls="registerForm">Dang ky</button>
+        </div>
+
+        <form class="form active" id="loginForm" autocomplete="on">
+          <div class="form-head">
+            <h2>Chao mung quay lai</h2>
+            <p>Dang nhap bang email va mat khau da luu trong Google Sheet.</p>
+          </div>
+          <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
+          <label>Mat khau<input name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required></label>
+          <button class="primary" type="submit">Dang nhap</button>
+        </form>
+
+        <form class="form" id="registerForm" autocomplete="on">
+          <div class="form-head">
+            <h2>Tao tai khoan</h2>
+            <p>Tai khoan se duoc luu trong Google Sheet va dung duoc tren moi thiet bi.</p>
+          </div>
+          <label>Ho ten<input name="name" type="text" placeholder="Nguyen Van A" autocomplete="name" minlength="2" required></label>
+          <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
+          <label>Mat khau<input name="password" type="password" placeholder="Toi thieu 8 ky tu" autocomplete="new-password" minlength="8" required></label>
+          <button class="primary" type="submit">Tao tai khoan</button>
+        </form>
+
+        <section class="dashboard" id="dashboard" aria-live="polite">
+          <div>
+            <p class="eyebrow">Da dang nhap</p>
+            <h2 id="welcomeName">Xin chao</h2>
+            <p id="welcomeEmail"></p>
+          </div>
+          <button class="secondary" id="logoutButton" type="button">Dang xuat</button>
+        </section>
+
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+      </section>
     </section>
 
-    <section class="auth-panel" aria-label="Authentication">
-      <div class="tabs" role="tablist" aria-label="Auth mode">
-        <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Dang nhap</button>
-        <button class="tab" id="registerTab" type="button" role="tab" aria-selected="false" aria-controls="registerForm">Dang ky</button>
-      </div>
-
-      <form class="form active" id="loginForm" autocomplete="on">
-        <div class="form-head">
-          <h2>Chao mung quay lai</h2>
-          <p>Dang nhap bang email va mat khau da luu trong Google Sheet.</p>
-        </div>
-        <label>
-          Email
-          <input id="loginEmail" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
-        </label>
-        <label>
-          Mat khau
-          <input id="loginPassword" name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required>
-        </label>
-        <button class="primary" type="submit">Dang nhap</button>
-      </form>
-
-      <form class="form" id="registerForm" autocomplete="on">
-        <div class="form-head">
-          <h2>Tao tai khoan</h2>
-          <p>Tai khoan se duoc luu trong Google Sheet va dung duoc tren moi thiet bi.</p>
-        </div>
-        <label>
-          Ho ten
-          <input id="registerName" name="name" type="text" placeholder="Nguyen Van A" autocomplete="name" minlength="2" required>
-        </label>
-        <label>
-          Email
-          <input id="registerEmail" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
-        </label>
-        <label>
-          Mat khau
-          <input id="registerPassword" name="password" type="password" placeholder="Toi thieu 8 ky tu" autocomplete="new-password" minlength="8" required>
-        </label>
-        <button class="primary" type="submit">Tao tai khoan</button>
-      </form>
-
-      <section class="dashboard" id="dashboard" aria-live="polite">
+    <section class="workspace hidden" id="companySection">
+      <div class="section-head">
         <div>
-          <p class="eyebrow">Da dang nhap</p>
-          <h2 id="welcomeName">Xin chao</h2>
-          <p id="welcomeEmail"></p>
+          <p class="eyebrow">Company</p>
+          <h2>Chon cong ty</h2>
         </div>
-        <button class="secondary" id="logoutButton" type="button">Dang xuat</button>
-      </section>
+        <button class="secondary" id="refreshCompaniesButton" type="button">Tai lai</button>
+      </div>
+      <div class="item-grid" id="companyList"></div>
+    </section>
 
-      <p class="message" id="message" role="status" aria-live="polite"></p>
+    <section class="workspace hidden" id="featureSection">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Workspace</p>
+          <h2 id="selectedCompanyName">Tinh nang</h2>
+        </div>
+      </div>
+      <div id="featureContent"></div>
     </section>
   </main>
 
