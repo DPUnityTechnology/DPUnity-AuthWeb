@@ -1,3 +1,5 @@
+const sessionKey = "dpunity.sheets.session";
+
 const elements = {
   loginTab: document.querySelector("#loginTab"),
   registerTab: document.querySelector("#registerTab"),
@@ -10,11 +12,9 @@ const elements = {
   welcomeEmail: document.querySelector("#welcomeEmail")
 };
 
-const config = window.DPUNITY_SUPABASE_CONFIG || {};
-const isConfigured = Boolean(config.url && config.anonKey && !config.url.includes("YOUR_"));
-const supabaseClient = isConfigured
-  ? window.supabase.createClient(config.url, config.anonKey)
-  : null;
+const config = window.DPUNITY_SHEETS_CONFIG || {};
+const apiUrl = config.apiUrl || "";
+const isConfigured = Boolean(apiUrl && !apiUrl.includes("YOUR_"));
 
 function setMessage(text, type = "") {
   elements.message.textContent = text;
@@ -23,10 +23,6 @@ function setMessage(text, type = "") {
 
 function normalizeEmail(email) {
   return email.trim().toLowerCase();
-}
-
-function getDisplayName(user) {
-  return user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 }
 
 function switchMode(mode) {
@@ -45,7 +41,7 @@ function showDashboard(user) {
   elements.loginForm.classList.remove("active");
   elements.registerForm.classList.remove("active");
   elements.dashboard.classList.add("active");
-  elements.welcomeName.textContent = `Xin chao, ${getDisplayName(user)}`;
+  elements.welcomeName.textContent = `Xin chao, ${user.name || user.email}`;
   elements.welcomeEmail.textContent = user.email || "";
   elements.loginTab.classList.remove("active");
   elements.registerTab.classList.remove("active");
@@ -53,29 +49,58 @@ function showDashboard(user) {
   elements.registerTab.setAttribute("aria-selected", "false");
 }
 
-function requireSupabase() {
-  if (supabaseClient) {
+function requireSheetsApi() {
+  if (isConfigured) {
     return true;
   }
 
-  setMessage("Chua cau hinh Supabase. Hay dien url va anonKey trong config.js.", "error");
+  setMessage("Chua cau hinh Google Apps Script Web App URL trong config.js.", "error");
   return false;
 }
 
-async function restoreSession() {
-  if (!requireSupabase()) {
+async function callSheetsApi(action, payload = {}) {
+  if (!requireSheetsApi()) {
+    return null;
+  }
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({
+      action,
+      payload
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google Sheets API loi HTTP ${response.status}`);
+  }
+
+  const result = await response.json();
+  if (!result.ok) {
+    throw new Error(result.error || "Google Sheets API tra ve loi.");
+  }
+
+  return result.data;
+}
+
+function saveSession(user) {
+  sessionStorage.setItem(sessionKey, JSON.stringify(user));
+}
+
+function restoreSession() {
+  const rawSession = sessionStorage.getItem(sessionKey);
+  if (!rawSession) {
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) {
-    setMessage(error.message, "error");
-    return;
-  }
-
-  if (data.session?.user) {
-    showDashboard(data.session.user);
+  try {
+    showDashboard(JSON.parse(rawSession));
     setMessage("Phien dang nhap da duoc khoi phuc.", "success");
+  } catch {
+    sessionStorage.removeItem(sessionKey);
   }
 }
 
@@ -84,7 +109,7 @@ elements.registerTab.addEventListener("click", () => switchMode("register"));
 
 elements.registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!requireSupabase()) {
+  if (!requireSheetsApi()) {
     return;
   }
 
@@ -98,35 +123,21 @@ elements.registerForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: name
-      }
-    }
-  });
-
-  if (error) {
+  try {
+    setMessage("Dang tao tai khoan...", "");
+    const data = await callSheetsApi("register", { name, email, password });
+    elements.registerForm.reset();
+    saveSession(data.user);
+    showDashboard(data.user);
+    setMessage("Tai khoan da duoc tao trong Google Sheet.", "success");
+  } catch (error) {
     setMessage(error.message, "error");
-    return;
   }
-
-  elements.registerForm.reset();
-  if (data.session?.user) {
-    showDashboard(data.session.user);
-    setMessage("Tai khoan da duoc tao va dang nhap.", "success");
-    return;
-  }
-
-  switchMode("login");
-  setMessage("Tai khoan da duoc tao. Kiem tra email neu Supabase yeu cau xac thuc.", "success");
 });
 
 elements.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!requireSupabase()) {
+  if (!requireSheetsApi()) {
     return;
   }
 
@@ -134,32 +145,20 @@ elements.loginForm.addEventListener("submit", async (event) => {
   const email = normalizeEmail(String(formData.get("email")));
   const password = String(formData.get("password"));
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
+  try {
+    setMessage("Dang dang nhap...", "");
+    const data = await callSheetsApi("login", { email, password });
+    elements.loginForm.reset();
+    saveSession(data.user);
+    showDashboard(data.user);
+    setMessage("Dang nhap thanh cong.", "success");
+  } catch (error) {
     setMessage(error.message, "error");
-    return;
   }
-
-  elements.loginForm.reset();
-  showDashboard(data.user);
-  setMessage("Dang nhap thanh cong.", "success");
 });
 
-elements.logoutButton.addEventListener("click", async () => {
-  if (!requireSupabase()) {
-    return;
-  }
-
-  const { error } = await supabaseClient.auth.signOut();
-  if (error) {
-    setMessage(error.message, "error");
-    return;
-  }
-
+elements.logoutButton.addEventListener("click", () => {
+  sessionStorage.removeItem(sessionKey);
   switchMode("login");
   setMessage("Ban da dang xuat.", "success");
 });
