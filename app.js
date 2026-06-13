@@ -52,7 +52,7 @@ function showDashboard(user) {
   elements.registerForm.classList.remove("active");
   elements.dashboard.classList.add("active");
   elements.companySection.classList.remove("hidden");
-  elements.welcomeName.textContent = `Xin chao, ${user.name || user.email}`;
+  elements.welcomeName.textContent = `Xin chào, ${user.name || user.email}`;
   elements.welcomeEmail.textContent = user.email || "";
   elements.loginTab.classList.remove("active");
   elements.registerTab.classList.remove("active");
@@ -66,7 +66,7 @@ function requireApi() {
     return true;
   }
 
-  setMessage("Chua cau hinh Cloudflare Worker API URL trong config.js.", "error");
+  setMessage("Chưa cấu hình Cloudflare Worker API URL trong config.js.", "error");
   return false;
 }
 
@@ -82,12 +82,12 @@ async function callApi(action, payload = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(`API loi HTTP ${response.status}`);
+    throw new Error(`API lỗi HTTP ${response.status}`);
   }
 
   const result = await response.json();
   if (!result.ok) {
-    throw new Error(result.error || "API tra ve loi.");
+    throw new Error(result.error || "API trả về lỗi.");
   }
 
   return result.data;
@@ -105,7 +105,7 @@ function restoreSession() {
 
   try {
     showDashboard(JSON.parse(rawSession));
-    setMessage("Phien dang nhap da duoc khoi phuc.", "success");
+    setMessage("Phiên đăng nhập đã được khôi phục.", "success");
   } catch {
     sessionStorage.removeItem(sessionKey);
   }
@@ -116,7 +116,7 @@ async function loadCompanies() {
     return;
   }
 
-  elements.companyList.innerHTML = "<p class=\"muted\">Dang tai danh sach cong ty...</p>";
+  elements.companyList.innerHTML = "<p class=\"muted\">Đang tải danh sách công ty...</p>";
 
   try {
     const data = await callApi("listCompaniesForUser", { userId: currentUser.id });
@@ -131,8 +131,8 @@ function renderCompanies(companies) {
   if (!companies.length) {
     elements.companyList.innerHTML = `
       <article class="data-card">
-        <h3>Chua co cong ty</h3>
-        <p class="muted">Tai khoan nay chua duoc gan vao cong ty nao. Hay vao trang Admin de tao cong ty va bo nhiem user lam rootadmin.</p>
+        <h3>Chưa có công ty</h3>
+        <p class="muted">Tài khoản này chưa được gán vào công ty nào. Hãy vào trang Admin để tạo công ty và bổ nhiệm user làm rootadmin.</p>
       </article>
     `;
     return;
@@ -142,10 +142,10 @@ function renderCompanies(companies) {
     <button class="company-row choose-company ${company.id === selectedCompanyId ? "active" : ""}" type="button" data-company-id="${escapeHtml(company.id)}">
       <span>
         <strong>${escapeHtml(company.name)}</strong>
-        <small>Root admin: ${escapeHtml(company.rootAdminName || "Chua gan")}</small>
+        <small>Root admin: ${escapeHtml(company.rootAdminName || "Chưa gán")}</small>
       </span>
       <span class="company-meta">
-        ${company.id === selectedCompanyId ? "<span class=\"pill active-pill\">Dang chon</span>" : ""}
+        ${company.id === selectedCompanyId ? "<span class=\"pill active-pill\">Đang chọn</span>" : ""}
         <span class="pill-row">${company.packageCodes.map((code) => `<span class="pill">${escapeHtml(code)}</span>`).join("") || "<span class=\"pill muted-pill\">no package</span>"}</span>
       </span>
     </button>
@@ -156,7 +156,7 @@ function chooseCompany(companyId, button) {
   document.querySelectorAll(".company-row").forEach((item) => item.classList.remove("active"));
   button.classList.add("active");
   sessionStorage.setItem("dpunity.selected.company", companyId);
-  setMessage("Dang mo workspace...", "success");
+  setMessage("Đang mở workspace...", "success");
   window.location.href = `./workspace.html?v=20260613-tabs&companyId=${encodeURIComponent(companyId)}`;
 }
 
@@ -195,17 +195,17 @@ elements.registerForm.addEventListener("submit", async (event) => {
   const password = String(formData.get("password"));
 
   if (password.length < 8) {
-    setMessage("Mat khau can toi thieu 8 ky tu.", "error");
+    setMessage("Mật khẩu cần tối thiểu 8 ký tự.", "error");
     return;
   }
 
   try {
-    setMessage("Dang tao tai khoan...", "");
+    setMessage("Đang tạo tài khoản...", "");
     const data = await callApi("register", { name, email, password });
     elements.registerForm.reset();
     saveSession(data.user);
     showDashboard(data.user);
-    setMessage("Tai khoan da duoc tao.", "success");
+    setMessage("Tài khoản đã được tạo.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -218,12 +218,12 @@ elements.loginForm.addEventListener("submit", async (event) => {
   const password = String(formData.get("password"));
 
   try {
-    setMessage("Dang dang nhap...", "");
+    setMessage("Đang đăng nhập...", "");
     const data = await callApi("login", { email, password });
     elements.loginForm.reset();
     saveSession(data.user);
     showDashboard(data.user);
-    setMessage("Dang nhap thanh cong.", "success");
+    setMessage("Đăng nhập thành công.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -235,11 +235,11 @@ elements.forgotPasswordForm.addEventListener("submit", async (event) => {
   const email = normalizeEmail(String(formData.get("email")));
 
   try {
-    setMessage("Dang gui yeu cau...", "");
+    setMessage("Đang gửi yêu cầu...", "");
     const data = await callApi("requestPasswordReset", { email });
     elements.forgotPasswordForm.reset();
     switchMode("login");
-    setMessage(data.message || "Da gui yeu cau dat lai mat khau.", "success");
+    setMessage(data.message || "Đã gửi yêu cầu đặt lại mật khẩu.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -249,7 +249,7 @@ elements.logoutButton.addEventListener("click", () => {
   currentUser = null;
   sessionStorage.removeItem(sessionKey);
   switchMode("login");
-  setMessage("Ban da dang xuat.", "success");
+  setMessage("Bạn đã đăng xuất.", "success");
 });
 
 restoreSession();

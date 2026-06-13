@@ -32,15 +32,15 @@ function setMessage(text, type = "") {
 }
 
 async function callApi(action, payload = {}) {
-  if (!isConfigured) throw new Error("Chua cau hinh Cloudflare Worker API URL trong config.js.");
+  if (!isConfigured) throw new Error("Chưa cấu hình Cloudflare Worker API URL trong config.js.");
   const response = await fetch(apiUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action, payload })
   });
-  if (!response.ok) throw new Error(`API loi HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`API lỗi HTTP ${response.status}`);
   const result = await response.json();
-  if (!result.ok) throw new Error(result.error || "API tra ve loi.");
+  if (!result.ok) throw new Error(result.error || "API trả về lỗi.");
   return result.data;
 }
 
@@ -61,7 +61,7 @@ async function loadWorkspace() {
   }
 
   try {
-    setMessage("Dang tai workspace...", "");
+    setMessage("Đang tải workspace...", "");
     workspace = await callApi("getCompanyWorkspace", { companyId, userId: currentUser.id });
     els.companyName.textContent = workspace.company.name;
     els.user.textContent = `${currentUser.name || currentUser.email} - ${currentUser.email}`;
@@ -99,12 +99,12 @@ function renderDashboard() {
     els.dashboardContent.innerHTML = `
       <article class="intro-panel">
         <h3>DPUnity Platform</h3>
-        <p>Cong ty nay chua duoc kich hoat goi Web. Day la trang gioi thieu chung cho den khi admin them package <strong>web</strong>.</p>
+        <p>Công ty này chưa được kích hoạt gói Web. Đây là trang giới thiệu chung cho đến khi admin thêm package <strong>web</strong>.</p>
       </article>
       <div class="item-grid">
-        <article class="data-card"><h3>${workspace.stats.users}</h3><p class="muted">Thanh vien cong ty</p></article>
+        <article class="data-card"><h3>${workspace.stats.users}</h3><p class="muted">Thành viên công ty</p></article>
         <article class="data-card"><h3>${workspace.stats.stickyNotes}</h3><p class="muted">Sticky notes</p></article>
-        <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Goi dang kich hoat</p><p class="pill-row">${packagePills}</p></article>
+        <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Gói đang kích hoạt</p><p class="pill-row">${packagePills}</p></article>
       </div>
     `;
     return;
@@ -112,9 +112,9 @@ function renderDashboard() {
 
   els.dashboardContent.innerHTML = `
     <div class="item-grid">
-      <article class="data-card"><h3>${workspace.stats.users}</h3><p class="muted">Thanh vien cong ty</p></article>
+      <article class="data-card"><h3>${workspace.stats.users}</h3><p class="muted">Thành viên công ty</p></article>
       <article class="data-card"><h3>${workspace.stats.stickyNotes}</h3><p class="muted">Sticky notes</p></article>
-      <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Goi dang kich hoat</p><p class="pill-row">${packagePills}</p></article>
+      <article class="data-card"><h3>${workspace.packages.length}</h3><p class="muted">Gói đang kích hoạt</p><p class="pill-row">${packagePills}</p></article>
     </div>
   `;
 }
@@ -123,8 +123,8 @@ function renderLockedStickyNotes() {
   els.stickyForm.classList.add("hidden");
   els.stickyList.innerHTML = `
     <article class="intro-panel">
-      <h3>Sticky Note dang bi khoa</h3>
-      <p>Cong ty nay can duoc gan package <strong>web</strong> trong trang Admin de su dung tinh nang Sticky Note.</p>
+      <h3>Sticky Note đang bị khóa</h3>
+      <p>Công ty này cần được gán package <strong>web</strong> trong trang Admin để sử dụng tính năng Sticky Note.</p>
     </article>
   `;
 }
@@ -138,7 +138,7 @@ async function loadStickyNotes() {
 
 function renderStickyNotes(notes) {
   if (!notes.length) {
-    els.stickyList.innerHTML = "<p class=\"muted\">Chua co sticky note.</p>";
+    els.stickyList.innerHTML = "<p class=\"muted\">Chưa có sticky note.</p>";
     return;
   }
 
@@ -173,7 +173,7 @@ function editStickyNote(note) {
 async function submitStickyNote(event) {
   event.preventDefault();
   if (!workspace?.hasWeb) {
-    setMessage("Cong ty can co package web de dung Sticky Note.", "error");
+    setMessage("Công ty cần có package web để dùng Sticky Note.", "error");
     return;
   }
 
@@ -222,7 +222,7 @@ function renderViewerChoices(selectedIds = []) {
   const selected = new Set(selectedIds);
   const choices = companyMembers.filter((member) => member.userId !== currentUser.id);
   if (!choices.length) {
-    els.noteViewerList.innerHTML = "<p class=\"muted\">Chua co nhan su khac trong cong ty.</p>";
+    els.noteViewerList.innerHTML = "<p class=\"muted\">Chưa có nhân sự khác trong công ty.</p>";
     return;
   }
 
@@ -240,9 +240,9 @@ function getSelectedViewerIds() {
 
 function formatNoteViewers(note) {
   const viewers = note.viewers || [];
-  if (!viewers.length && note.visibility === "company") return "Ca cong ty";
-  if (!viewers.length) return "Chi owner";
-  return `Duoc xem: ${viewers.map((viewer) => viewer.name || viewer.email).join(", ")}`;
+  if (!viewers.length && note.visibility === "company") return "Cả công ty";
+  if (!viewers.length) return "Chỉ owner";
+  return `Được xem: ${viewers.map((viewer) => viewer.name || viewer.email).join(", ")}`;
 }
 
 function renderMembers() {
@@ -250,7 +250,7 @@ function renderMembers() {
   els.memberForm.classList.toggle("hidden", !canManage);
 
   if (!companyMembers.length) {
-    els.memberList.innerHTML = "<p class=\"muted\">Chua co nhan su trong cong ty.</p>";
+    els.memberList.innerHTML = "<p class=\"muted\">Chưa có nhân sự trong công ty.</p>";
     return;
   }
 
@@ -258,9 +258,9 @@ function renderMembers() {
     <table>
       <thead>
         <tr>
-          <th>Ten</th>
+          <th>Tên</th>
           <th>Email</th>
-          <th>Vai tro</th>
+          <th>Vai trò</th>
           <th></th>
         </tr>
       </thead>
@@ -302,7 +302,7 @@ async function submitMember(event) {
     els.memberForm.reset();
     renderMembers();
     renderViewerChoices();
-    setMessage("Da them thanh vien.", "success");
+    setMessage("Đã thêm thành viên.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -314,7 +314,7 @@ async function updateMemberRole(memberUserId, role) {
     companyMembers = data.members || [];
     renderMembers();
     renderViewerChoices();
-    setMessage("Da cap nhat vai tro.", "success");
+    setMessage("Đã cập nhật vai trò.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -327,7 +327,7 @@ async function deleteMember(memberUserId) {
     renderMembers();
     renderViewerChoices();
     await loadStickyNotes();
-    setMessage("Da xoa thanh vien khoi cong ty.", "success");
+    setMessage("Đã xóa thành viên khỏi công ty.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }

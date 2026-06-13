@@ -50,7 +50,7 @@ function setLoginMessage(text, type = "") {
 
 async function callApi(action, payload = {}) {
   if (!isConfigured) {
-    throw new Error("Chua cau hinh Cloudflare Worker API URL trong config.js.");
+    throw new Error("Chưa cấu hình Cloudflare Worker API URL trong config.js.");
   }
 
   const requestPayload = {
@@ -65,12 +65,12 @@ async function callApi(action, payload = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(`API loi HTTP ${response.status}`);
+    throw new Error(`API lỗi HTTP ${response.status}`);
   }
 
   const result = await response.json();
   if (!result.ok) {
-    throw new Error(result.error || "API tra ve loi.");
+    throw new Error(result.error || "API trả về lỗi.");
   }
 
   return result.data;
@@ -125,10 +125,10 @@ function restoreAdminSession() {
 
 async function submitGoogleAdminLogin(idToken) {
   try {
-    setLoginMessage("Dang xac thuc Google...", "");
+    setLoginMessage("Đang xác thực Google...", "");
     const data = await callApi("googleAdminLogin", { idToken });
     if (!isAdminUser(data.user)) {
-      setLoginMessage("Chi SuperRootAdmin hongocquocsang2721@gmail.com moi co quyen vao trang Admin.", "error");
+      setLoginMessage("Chỉ SuperRootAdmin hongocquocsang2721@gmail.com mới có quyền vào trang Admin.", "error");
       return;
     }
 
@@ -142,12 +142,12 @@ async function submitGoogleAdminLogin(idToken) {
 
 function initializeGoogleSignIn() {
   if (!googleClientId || googleClientId.includes("YOUR_")) {
-    setLoginMessage("Chua cau hinh googleClientId trong config.js.", "error");
+    setLoginMessage("Chưa cấu hình googleClientId trong config.js.", "error");
     return;
   }
 
   if (!window.google?.accounts?.id) {
-    setLoginMessage("Google Sign-In dang tai. Bam nut tai lai neu nut Google chua hien.", "");
+    setLoginMessage("Google Sign-In đang tải. Bấm nút tải lại nếu nút Google chưa hiện.", "");
     return;
   }
 
@@ -167,7 +167,7 @@ function initializeGoogleSignIn() {
 }
 
 async function loadAdminData() {
-  setMessage("Dang tai du lieu...", "");
+  setMessage("Đang tải dữ liệu...", "");
   try {
     const data = await callApi("adminList");
     state.users = data.users || [];
@@ -175,7 +175,7 @@ async function loadAdminData() {
     state.companies = data.companies || [];
     state.passwordResetRequests = data.passwordResetRequests || [];
     renderAll();
-    setMessage("Da tai du lieu.", "success");
+    setMessage("Đã tải dữ liệu.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -196,11 +196,11 @@ function renderUsers() {
       <td>${escapeHtml(user.email)}</td>
       <td>${escapeHtml(user.role || "user")}</td>
       <td class="actions">
-        <button class="secondary small" data-edit-user="${escapeHtml(user.id)}" type="button">Sua</button>
-        <button class="danger small" data-delete-user="${escapeHtml(user.id)}" type="button">Xoa</button>
+        <button class="secondary small" data-edit-user="${escapeHtml(user.id)}" type="button">Sửa</button>
+        <button class="danger small" data-delete-user="${escapeHtml(user.id)}" type="button">Xóa</button>
       </td>
     </tr>
-  `).join("") || "<tr><td colspan=\"4\">Chua co user.</td></tr>";
+  `).join("") || "<tr><td colspan=\"4\">Chưa có user.</td></tr>";
 }
 
 function renderPackages() {
@@ -210,15 +210,15 @@ function renderPackages() {
       <td>${escapeHtml(pack.code)}</td>
       <td>${escapeHtml(pack.description)}</td>
       <td class="actions">
-        <button class="secondary small" data-edit-package="${escapeHtml(pack.id)}" type="button">Sua</button>
-        <button class="danger small" data-delete-package="${escapeHtml(pack.id)}" type="button">Xoa</button>
+        <button class="secondary small" data-edit-package="${escapeHtml(pack.id)}" type="button">Sửa</button>
+        <button class="danger small" data-delete-package="${escapeHtml(pack.id)}" type="button">Xóa</button>
       </td>
     </tr>
-  `).join("") || "<tr><td colspan=\"4\">Chua co goi.</td></tr>";
+  `).join("") || "<tr><td colspan=\"4\">Chưa có gói.</td></tr>";
 }
 
 function renderCompanyControls() {
-  els.rootAdminSelect.innerHTML = "<option value=\"\">Chua gan</option>" + state.users.map((user) => `
+  els.rootAdminSelect.innerHTML = "<option value=\"\">Chưa gán</option>" + state.users.map((user) => `
     <option value="${escapeHtml(user.id)}">${escapeHtml(user.name)} (${escapeHtml(user.email)})</option>
   `).join("");
 
@@ -227,35 +227,35 @@ function renderCompanyControls() {
       <input type="checkbox" name="packageCodes" value="${escapeHtml(pack.code)}">
       ${escapeHtml(pack.name)} <span>${escapeHtml(pack.code)}</span>
     </label>
-  `).join("") || "<p class=\"muted\">Chua co goi de gan.</p>";
+  `).join("") || "<p class=\"muted\">Chưa có gói để gán.</p>";
 }
 
 function renderCompanies() {
   els.companiesTable.innerHTML = state.companies.map((company) => `
     <tr>
       <td>${escapeHtml(company.name)}</td>
-      <td>${escapeHtml(company.rootAdminName || "Chua gan")}</td>
+      <td>${escapeHtml(company.rootAdminName || "Chưa gán")}</td>
       <td>${(company.packageCodes || []).map((code) => `<span class="pill">${escapeHtml(code)}</span>`).join("")}</td>
       <td class="actions">
-        <button class="secondary small" data-edit-company="${escapeHtml(company.id)}" type="button">Sua</button>
-        <button class="danger small" data-delete-company="${escapeHtml(company.id)}" type="button">Xoa</button>
+        <button class="secondary small" data-edit-company="${escapeHtml(company.id)}" type="button">Sửa</button>
+        <button class="danger small" data-delete-company="${escapeHtml(company.id)}" type="button">Xóa</button>
       </td>
     </tr>
-  `).join("") || "<tr><td colspan=\"4\">Chua co cong ty.</td></tr>";
+  `).join("") || "<tr><td colspan=\"4\">Chưa có công ty.</td></tr>";
 }
 
 function renderPasswordResetRequests() {
   els.passwordResetTable.innerHTML = state.passwordResetRequests.map((request) => `
     <tr>
       <td>${escapeHtml(request.email)}</td>
-      <td>${escapeHtml(request.userName || request.userId || "Khong tim thay user")}</td>
+      <td>${escapeHtml(request.userName || request.userId || "Không tìm thấy user")}</td>
       <td><span class="pill ${request.status === "resolved" ? "muted-pill" : ""}">${escapeHtml(request.status)}</span></td>
       <td class="actions">
-        ${request.status === "resolved" ? "" : `<button class="secondary small" data-edit-reset-user="${escapeHtml(request.userId || "")}" type="button">Sua user</button>`}
-        ${request.status === "resolved" ? "" : `<button class="danger small" data-resolve-reset="${escapeHtml(request.id)}" type="button">Da xu ly</button>`}
+        ${request.status === "resolved" ? "" : `<button class="secondary small" data-edit-reset-user="${escapeHtml(request.userId || "")}" type="button">Sửa user</button>`}
+        ${request.status === "resolved" ? "" : `<button class="danger small" data-resolve-reset="${escapeHtml(request.id)}" type="button">Đã xử lý</button>`}
       </td>
     </tr>
-  `).join("") || "<tr><td colspan=\"4\">Chua co yeu cau.</td></tr>";
+  `).join("") || "<tr><td colspan=\"4\">Chưa có yêu cầu.</td></tr>";
 }
 
 async function submitUser(event) {
@@ -265,7 +265,7 @@ async function submitUser(event) {
   const action = payload.id ? "updateUser" : "addUser";
 
   if (!payload.id && !payload.password) {
-    setMessage("Mat khau bat buoc khi tao user.", "error");
+    setMessage("Mật khẩu bắt buộc khi tạo user.", "error");
     return;
   }
 
@@ -274,7 +274,7 @@ async function submitUser(event) {
     els.userForm.reset();
     els.userForm.elements.role.value = "user";
     await loadAdminData();
-    setMessage("Da luu user.", "success");
+    setMessage("Đã lưu user.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -289,7 +289,7 @@ async function submitPackage(event) {
     await callApi(action, payload);
     els.packageForm.reset();
     await loadAdminData();
-    setMessage("Da luu goi.", "success");
+    setMessage("Đã lưu gói.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -306,7 +306,7 @@ async function submitCompany(event) {
     await callApi(action, payload);
     els.companyForm.reset();
     await loadAdminData();
-    setMessage("Da luu cong ty.", "success");
+    setMessage("Đã lưu công ty.", "success");
   } catch (error) {
     setMessage(error.message, "error");
   }
@@ -372,7 +372,7 @@ function escapeHtml(value) {
 
 els.loginForm.addEventListener("submit", (event) => event.preventDefault());
 els.googleFallbackButton.addEventListener("click", initializeGoogleSignIn);
-els.logoutButton.addEventListener("click", () => showLoginShell("Ban da dang xuat Admin."));
+els.logoutButton.addEventListener("click", () => showLoginShell("Bạn đã đăng xuất Admin."));
 els.refreshButton.addEventListener("click", loadAdminData);
 els.userForm.addEventListener("submit", submitUser);
 els.packageForm.addEventListener("submit", submitPackage);
@@ -387,25 +387,25 @@ document.addEventListener("click", (event) => {
   if (editUserButton) editUser(editUserButton.dataset.editUser);
 
   const deleteUserButton = target.closest("[data-delete-user]");
-  if (deleteUserButton) deleteRecord("deleteUser", deleteUserButton.dataset.deleteUser, "Da xoa user.");
+  if (deleteUserButton) deleteRecord("deleteUser", deleteUserButton.dataset.deleteUser, "Đã xóa user.");
 
   const editPackageButton = target.closest("[data-edit-package]");
   if (editPackageButton) editPackage(editPackageButton.dataset.editPackage);
 
   const deletePackageButton = target.closest("[data-delete-package]");
-  if (deletePackageButton) deleteRecord("deletePackage", deletePackageButton.dataset.deletePackage, "Da xoa goi.");
+  if (deletePackageButton) deleteRecord("deletePackage", deletePackageButton.dataset.deletePackage, "Đã xóa gói.");
 
   const editCompanyButton = target.closest("[data-edit-company]");
   if (editCompanyButton) editCompany(editCompanyButton.dataset.editCompany);
 
   const deleteCompanyButton = target.closest("[data-delete-company]");
-  if (deleteCompanyButton) deleteRecord("deleteCompany", deleteCompanyButton.dataset.deleteCompany, "Da xoa cong ty.");
+  if (deleteCompanyButton) deleteRecord("deleteCompany", deleteCompanyButton.dataset.deleteCompany, "Đã xóa công ty.");
 
   const editResetUserButton = target.closest("[data-edit-reset-user]");
   if (editResetUserButton && editResetUserButton.dataset.editResetUser) editUser(editResetUserButton.dataset.editResetUser);
 
   const resolveResetButton = target.closest("[data-resolve-reset]");
-  if (resolveResetButton) deleteRecord("resolvePasswordReset", resolveResetButton.dataset.resolveReset, "Da danh dau yeu cau da xu ly.");
+  if (resolveResetButton) deleteRecord("resolvePasswordReset", resolveResetButton.dataset.resolveReset, "Đã đánh dấu yêu cầu đã xử lý.");
 });
 
 window.addEventListener("load", initializeGoogleSignIn);
