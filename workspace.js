@@ -151,7 +151,7 @@ function renderStickyNotes(notes) {
           <p>${escapeHtml(note.content)}</p>
         </div>
         <small>${escapeHtml(formatNoteViewers(note))} - ${escapeHtml(note.ownerName || "Unknown")}</small>
-        ${isOwner ? `<div class="button-row"><button class="secondary small" data-edit-note="${escapeHtml(note.id)}" type="button">Sua</button><button class="danger small" data-delete-note="${escapeHtml(note.id)}" type="button">Xoa</button></div>` : ""}
+        ${isOwner ? `<div class="button-row"><button class="secondary small" data-edit-note="${escapeHtml(note.id)}" type="button">Sửa</button><button class="danger small" data-delete-note="${escapeHtml(note.id)}" type="button">Xóa</button></div>` : ""}
       </article>
     `;
   }).join("");
@@ -279,7 +279,7 @@ function renderMembers() {
             </td>
             <td class="actions">
               ${canManage && member.userId !== currentUser.id && member.role !== "rootadmin"
-                ? `<button class="danger small" data-delete-member="${escapeHtml(member.userId)}" type="button">Xoa</button>`
+                ? `<button class="danger small" data-delete-member="${escapeHtml(member.userId)}" type="button">Xóa</button>`
                 : ""}
             </td>
           </tr>

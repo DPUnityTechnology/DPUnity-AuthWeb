@@ -23,57 +23,57 @@
         <div>
           <p class="eyebrow">User Portal</p>
           <h1>Company Workspace</h1>
-          <p class="lead">Dang ky, dang nhap, chon cong ty va hien thi tinh nang theo goi da kich hoat.</p>
+          <p class="lead">Đăng ký, đăng nhập, chọn công ty và hiển thị tính năng theo gói đã kích hoạt.</p>
         </div>
       </div>
 
       <section class="auth-panel" aria-label="Authentication">
         <div class="tabs" role="tablist" aria-label="Auth mode">
-          <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Dang nhap</button>
-          <button class="tab" id="registerTab" type="button" role="tab" aria-selected="false" aria-controls="registerForm">Dang ky</button>
+          <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Đăng nhập</button>
+          <button class="tab" id="registerTab" type="button" role="tab" aria-selected="false" aria-controls="registerForm">Đăng ký</button>
         </div>
 
         <form class="form active" id="loginForm" autocomplete="on">
           <div class="form-head">
-            <h2>Chao mung quay lai</h2>
-          <p>Dang nhap bang email va mat khau da luu trong Cloudflare D1.</p>
+            <h2>Chào mừng quay lại</h2>
+          <p>Đăng nhập bằng email và mật khẩu đã lưu trong Cloudflare D1.</p>
           </div>
           <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
-          <label>Mat khau<input name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required></label>
-          <button class="primary" type="submit">Dang nhap</button>
-          <button class="link-button" id="forgotPasswordButton" type="button">Quen mat khau?</button>
+          <label>Mật khẩu<input name="password" type="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required></label>
+          <button class="primary" type="submit">Đăng nhập</button>
+          <button class="link-button" id="forgotPasswordButton" type="button">Quên mật khẩu?</button>
         </form>
 
         <form class="form" id="forgotPasswordForm" autocomplete="on">
           <div class="form-head">
-            <h2>Quen mat khau</h2>
-            <p>Nhap email tai khoan. He thong se tao yeu cau de SuperRootAdmin dat lai mat khau.</p>
+            <h2>Quên mật khẩu</h2>
+            <p>Nhập email tài khoản. Hệ thống sẽ tạo yêu cầu để SuperRootAdmin đặt lại mật khẩu.</p>
           </div>
           <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
           <div class="button-row">
-            <button class="primary" type="submit">Gui yeu cau</button>
-            <button class="secondary" id="backToLoginButton" type="button">Quay lai</button>
+            <button class="primary" type="submit">Gửi yêu cầu</button>
+            <button class="secondary" id="backToLoginButton" type="button">Quay lại</button>
           </div>
         </form>
 
         <form class="form" id="registerForm" autocomplete="on">
           <div class="form-head">
-            <h2>Tao tai khoan</h2>
-          <p>Tai khoan se duoc luu trong Cloudflare D1 va dung duoc tren moi thiet bi.</p>
+            <h2>Tạo tài khoản</h2>
+          <p>Tài khoản sẽ được lưu trong Cloudflare D1 và dùng được trên mọi thiết bị.</p>
           </div>
-          <label>Ho ten<input name="name" type="text" placeholder="Nguyen Van A" autocomplete="name" minlength="2" required></label>
+          <label>Họ tên<input name="name" type="text" placeholder="Nguyễn Văn A" autocomplete="name" minlength="2" required></label>
           <label>Email<input name="email" type="email" placeholder="you@company.com" autocomplete="email" required></label>
-          <label>Mat khau<input name="password" type="password" placeholder="Toi thieu 8 ky tu" autocomplete="new-password" minlength="8" required></label>
-          <button class="primary" type="submit">Tao tai khoan</button>
+          <label>Mật khẩu<input name="password" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" minlength="8" required></label>
+          <button class="primary" type="submit">Tạo tài khoản</button>
         </form>
 
         <section class="dashboard" id="dashboard" aria-live="polite">
           <div>
-            <p class="eyebrow">Da dang nhap</p>
-            <h2 id="welcomeName">Xin chao</h2>
+            <p class="eyebrow">Đã đăng nhập</p>
+            <h2 id="welcomeName">Xin chào</h2>
             <p id="welcomeEmail"></p>
           </div>
-          <button class="secondary" id="logoutButton" type="button">Dang xuat</button>
+          <button class="secondary" id="logoutButton" type="button">Đăng xuất</button>
         </section>
 
         <p class="message" id="message" role="status" aria-live="polite"></p>
@@ -84,9 +84,9 @@
       <div class="section-head">
         <div>
           <p class="eyebrow">Company</p>
-          <h2>Chon cong ty</h2>
+          <h2>Chọn công ty</h2>
         </div>
-        <button class="secondary" id="refreshCompaniesButton" type="button">Tai lai</button>
+        <button class="secondary" id="refreshCompaniesButton" type="button">Tải lại</button>
       </div>
       <div class="company-list" id="companyList"></div>
     </section>
