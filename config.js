@@ -1,3 +1,3 @@
 window.DPUNITY_SHEETS_CONFIG = {
-  apiUrl: "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"
+    apiUrl: "https://script.google.com/macros/s/AKfycbyzIJByowKYdcu3t9V5Lbz0QrlNV6K6iLU08bcZLdNl2Kf6QYRmuSbxw3ZUinCQ6W0f/exec"
 };
