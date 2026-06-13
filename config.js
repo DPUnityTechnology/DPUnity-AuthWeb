@@ -1,4 +1,4 @@
 window.DPUNITY_SUPABASE_CONFIG = {
-  url: "YOUR_SUPABASE_PROJECT_URL",
-  anonKey: "YOUR_SUPABASE_ANON_KEY"
+  url: "https://cueusucyvhfuiblwieav.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1ZXVzdWN5dmhmdWlibHdpZWF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMzQxMDIsImV4cCI6MjA5NjkxMDEwMn0.yvf35KDyMDBOZw2hUioCYjwL9Weys4SqM1yQYx05vLE"
 };
