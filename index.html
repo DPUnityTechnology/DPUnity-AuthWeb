@@ -14,79 +14,81 @@
       <div>
         <p class="eyebrow">DPUnity</p>
         <h1>Account Portal</h1>
-        <p class="lead">Một điểm vào gọn gàng cho đăng ký, đăng nhập và quản lý phiên truy cập web.</p>
+        <p class="lead">Cong dang ky, dang nhap va quan ly phien truy cap dung chung du lieu online.</p>
       </div>
       <div class="stats" aria-label="Security highlights">
         <div>
-          <span>SHA-256</span>
-          <small>Mã băm mật khẩu phía trình duyệt</small>
+          <span>Supabase</span>
+          <small>Dang ky va dang nhap bang Supabase Auth</small>
         </div>
         <div>
-          <span>Local</span>
-          <small>Lưu phiên thử nghiệm trên thiết bị</small>
+          <span>Shared</span>
+          <small>Tai khoan duoc luu online, dung chung giua cac thiet bi</small>
         </div>
         <div>
-          <span>Responsive</span>
-          <small>Dùng tốt trên điện thoại và desktop</small>
+          <span>API Ready</span>
+          <small>Frontend goi Supabase API truc tiep tu GitHub Pages</small>
         </div>
       </div>
     </section>
 
     <section class="auth-panel" aria-label="Authentication">
       <div class="tabs" role="tablist" aria-label="Auth mode">
-        <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Đăng nhập</button>
-        <button class="tab" id="registerTab" type="button" role="tab" aria-selected="false" aria-controls="registerForm">Đăng ký</button>
+        <button class="tab active" id="loginTab" type="button" role="tab" aria-selected="true" aria-controls="loginForm">Dang nhap</button>
+        <button class="tab" id="registerTab" type="button" role="tab" aria-selected="false" aria-controls="registerForm">Dang ky</button>
       </div>
 
       <form class="form active" id="loginForm" autocomplete="on">
         <div class="form-head">
-          <h2>Chào mừng quay lại</h2>
-          <p>Đăng nhập bằng email và mật khẩu đã đăng ký.</p>
+          <h2>Chao mung quay lai</h2>
+          <p>Dang nhap bang email va mat khau da dang ky tren Supabase.</p>
         </div>
         <label>
           Email
           <input id="loginEmail" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
         </label>
         <label>
-          Mật khẩu
-          <input id="loginPassword" name="password" type="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required>
+          Mat khau
+          <input id="loginPassword" name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required>
         </label>
-        <button class="primary" type="submit">Đăng nhập</button>
+        <button class="primary" type="submit">Dang nhap</button>
       </form>
 
       <form class="form" id="registerForm" autocomplete="on">
         <div class="form-head">
-          <h2>Tạo tài khoản</h2>
-          <p>Thông tin được lưu trong trình duyệt cho bản web tĩnh online.</p>
+          <h2>Tao tai khoan</h2>
+          <p>Tai khoan se duoc tao trong Supabase Auth va dung duoc tren moi thiet bi.</p>
         </div>
         <label>
-          Họ tên
-          <input id="registerName" name="name" type="text" placeholder="Nguyễn Văn A" autocomplete="name" minlength="2" required>
+          Ho ten
+          <input id="registerName" name="name" type="text" placeholder="Nguyen Van A" autocomplete="name" minlength="2" required>
         </label>
         <label>
           Email
           <input id="registerEmail" name="email" type="email" placeholder="you@company.com" autocomplete="email" required>
         </label>
         <label>
-          Mật khẩu
-          <input id="registerPassword" name="password" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" minlength="8" required>
+          Mat khau
+          <input id="registerPassword" name="password" type="password" placeholder="Toi thieu 8 ky tu" autocomplete="new-password" minlength="8" required>
         </label>
-        <button class="primary" type="submit">Tạo tài khoản</button>
+        <button class="primary" type="submit">Tao tai khoan</button>
       </form>
 
       <section class="dashboard" id="dashboard" aria-live="polite">
         <div>
-          <p class="eyebrow">Đã đăng nhập</p>
-          <h2 id="welcomeName">Xin chào</h2>
+          <p class="eyebrow">Da dang nhap</p>
+          <h2 id="welcomeName">Xin chao</h2>
           <p id="welcomeEmail"></p>
         </div>
-        <button class="secondary" id="logoutButton" type="button">Đăng xuất</button>
+        <button class="secondary" id="logoutButton" type="button">Dang xuat</button>
       </section>
 
       <p class="message" id="message" role="status" aria-live="polite"></p>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

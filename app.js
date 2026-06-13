@@ -1,8 +1,3 @@
-const storageKeys = {
-  users: "dpunity.auth.users",
-  session: "dpunity.auth.session"
-};
-
 const elements = {
   loginTab: document.querySelector("#loginTab"),
   registerTab: document.querySelector("#registerTab"),
@@ -15,13 +10,11 @@ const elements = {
   welcomeEmail: document.querySelector("#welcomeEmail")
 };
 
-function getUsers() {
-  return JSON.parse(localStorage.getItem(storageKeys.users) || "[]");
-}
-
-function saveUsers(users) {
-  localStorage.setItem(storageKeys.users, JSON.stringify(users));
-}
+const config = window.DPUNITY_SUPABASE_CONFIG || {};
+const isConfigured = Boolean(config.url && config.anonKey && !config.url.includes("YOUR_"));
+const supabaseClient = isConfigured
+  ? window.supabase.createClient(config.url, config.anonKey)
+  : null;
 
 function setMessage(text, type = "") {
   elements.message.textContent = text;
@@ -32,12 +25,8 @@ function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
 
-async function hashPassword(password) {
-  const data = new TextEncoder().encode(password);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return [...new Uint8Array(digest)]
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
+function getDisplayName(user) {
+  return user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 }
 
 function switchMode(mode) {
@@ -56,24 +45,37 @@ function showDashboard(user) {
   elements.loginForm.classList.remove("active");
   elements.registerForm.classList.remove("active");
   elements.dashboard.classList.add("active");
-  elements.welcomeName.textContent = `Xin chào, ${user.name}`;
-  elements.welcomeEmail.textContent = user.email;
+  elements.welcomeName.textContent = `Xin chao, ${getDisplayName(user)}`;
+  elements.welcomeEmail.textContent = user.email || "";
   elements.loginTab.classList.remove("active");
   elements.registerTab.classList.remove("active");
   elements.loginTab.setAttribute("aria-selected", "false");
   elements.registerTab.setAttribute("aria-selected", "false");
 }
 
-function restoreSession() {
-  const sessionEmail = localStorage.getItem(storageKeys.session);
-  if (!sessionEmail) {
+function requireSupabase() {
+  if (supabaseClient) {
+    return true;
+  }
+
+  setMessage("Chua cau hinh Supabase. Hay dien url va anonKey trong config.js.", "error");
+  return false;
+}
+
+async function restoreSession() {
+  if (!requireSupabase()) {
     return;
   }
 
-  const user = getUsers().find((item) => item.email === sessionEmail);
-  if (user) {
-    showDashboard(user);
-    setMessage("Phiên đăng nhập đã được khôi phục.", "success");
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) {
+    setMessage(error.message, "error");
+    return;
+  }
+
+  if (data.session?.user) {
+    showDashboard(data.session.user);
+    setMessage("Phien dang nhap da duoc khoi phuc.", "success");
   }
 }
 
@@ -82,61 +84,84 @@ elements.registerTab.addEventListener("click", () => switchMode("register"));
 
 elements.registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (!requireSupabase()) {
+    return;
+  }
+
   const formData = new FormData(elements.registerForm);
   const name = String(formData.get("name")).trim();
   const email = normalizeEmail(String(formData.get("email")));
   const password = String(formData.get("password"));
 
   if (password.length < 8) {
-    setMessage("Mật khẩu cần tối thiểu 8 ký tự.", "error");
+    setMessage("Mat khau can toi thieu 8 ky tu.", "error");
     return;
   }
 
-  const users = getUsers();
-  if (users.some((user) => user.email === email)) {
-    setMessage("Email này đã được đăng ký.", "error");
-    return;
-  }
-
-  const passwordHash = await hashPassword(password);
-  const user = {
-    id: crypto.randomUUID(),
-    name,
+  const { data, error } = await supabaseClient.auth.signUp({
     email,
-    passwordHash,
-    createdAt: new Date().toISOString()
-  };
+    password,
+    options: {
+      data: {
+        full_name: name
+      }
+    }
+  });
 
-  saveUsers([...users, user]);
-  localStorage.setItem(storageKeys.session, email);
+  if (error) {
+    setMessage(error.message, "error");
+    return;
+  }
+
   elements.registerForm.reset();
-  showDashboard(user);
-  setMessage("Tài khoản đã được tạo và đăng nhập.", "success");
+  if (data.session?.user) {
+    showDashboard(data.session.user);
+    setMessage("Tai khoan da duoc tao va dang nhap.", "success");
+    return;
+  }
+
+  switchMode("login");
+  setMessage("Tai khoan da duoc tao. Kiem tra email neu Supabase yeu cau xac thuc.", "success");
 });
 
 elements.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const formData = new FormData(elements.loginForm);
-  const email = normalizeEmail(String(formData.get("email")));
-  const password = String(formData.get("password"));
-  const passwordHash = await hashPassword(password);
-  const user = getUsers().find((item) => item.email === email && item.passwordHash === passwordHash);
-
-  if (!user) {
-    setMessage("Email hoặc mật khẩu không đúng.", "error");
+  if (!requireSupabase()) {
     return;
   }
 
-  localStorage.setItem(storageKeys.session, email);
+  const formData = new FormData(elements.loginForm);
+  const email = normalizeEmail(String(formData.get("email")));
+  const password = String(formData.get("password"));
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    setMessage(error.message, "error");
+    return;
+  }
+
   elements.loginForm.reset();
-  showDashboard(user);
-  setMessage("Đăng nhập thành công.", "success");
+  showDashboard(data.user);
+  setMessage("Dang nhap thanh cong.", "success");
 });
 
-elements.logoutButton.addEventListener("click", () => {
-  localStorage.removeItem(storageKeys.session);
+elements.logoutButton.addEventListener("click", async () => {
+  if (!requireSupabase()) {
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) {
+    setMessage(error.message, "error");
+    return;
+  }
+
   switchMode("login");
-  setMessage("Bạn đã đăng xuất.", "success");
+  setMessage("Ban da dang xuat.", "success");
 });
 
 restoreSession();
