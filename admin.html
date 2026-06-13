@@ -17,18 +17,36 @@
       </nav>
     </header>
 
-    <section class="workspace">
+    <section class="auth-panel admin-login-panel" id="adminLoginPanel" aria-label="Admin login">
+      <form class="form active" id="adminLoginForm" autocomplete="on">
+        <div class="form-head">
+          <p class="eyebrow">Secure Admin</p>
+          <h1>Dang nhap quan tri</h1>
+          <p>Chi tai khoan co role <strong>admin</strong> hoac <strong>rootadmin</strong> moi duoc vao trang nay.</p>
+        </div>
+        <label>Email<input name="email" type="email" placeholder="admin@company.com" autocomplete="email" required></label>
+        <label>Mat khau<input name="password" type="password" placeholder="Nhap mat khau" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Dang nhap Admin</button>
+        <p class="message" id="adminLoginMessage" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="workspace hidden" id="adminHeader">
       <div class="section-head">
         <div>
           <p class="eyebrow">Control Center</p>
           <h1>Quan tri he thong</h1>
+          <p class="muted" id="adminIdentity"></p>
         </div>
-        <button class="secondary" id="refreshButton" type="button">Tai lai</button>
+        <div class="button-row">
+          <button class="secondary" id="refreshButton" type="button">Tai lai</button>
+          <button class="danger" id="adminLogoutButton" type="button">Dang xuat</button>
+        </div>
       </div>
       <p class="message" id="adminMessage" role="status" aria-live="polite"></p>
     </section>
 
-    <section class="admin-grid">
+    <section class="admin-grid hidden" id="adminContent">
       <article class="manager-panel">
         <h2>User da dang ky</h2>
         <form class="inline-form" id="userForm">

@@ -1,10 +1,20 @@
+const adminSessionKey = "dpunity.admin.session";
+
 const state = {
   users: [],
   packages: [],
-  companies: []
+  companies: [],
+  adminUser: null
 };
 
 const els = {
+  loginPanel: document.querySelector("#adminLoginPanel"),
+  loginForm: document.querySelector("#adminLoginForm"),
+  loginMessage: document.querySelector("#adminLoginMessage"),
+  adminHeader: document.querySelector("#adminHeader"),
+  adminContent: document.querySelector("#adminContent"),
+  adminIdentity: document.querySelector("#adminIdentity"),
+  logoutButton: document.querySelector("#adminLogoutButton"),
   message: document.querySelector("#adminMessage"),
   refreshButton: document.querySelector("#refreshButton"),
   userForm: document.querySelector("#userForm"),
@@ -24,6 +34,11 @@ const isConfigured = Boolean(apiUrl && !apiUrl.includes("YOUR_"));
 function setMessage(text, type = "") {
   els.message.textContent = text;
   els.message.className = `message ${type}`.trim();
+}
+
+function setLoginMessage(text, type = "") {
+  els.loginMessage.textContent = text;
+  els.loginMessage.className = `message ${type}`.trim();
 }
 
 async function callApi(action, payload = {}) {
@@ -47,6 +62,73 @@ async function callApi(action, payload = {}) {
   }
 
   return result.data;
+}
+
+function isAdminUser(user) {
+  return ["admin", "rootadmin"].includes(String(user?.role || "").toLowerCase());
+}
+
+function showAdminShell(user) {
+  state.adminUser = user;
+  sessionStorage.setItem(adminSessionKey, JSON.stringify(user));
+  els.loginPanel.classList.add("hidden");
+  els.adminHeader.classList.remove("hidden");
+  els.adminContent.classList.remove("hidden");
+  els.adminIdentity.textContent = `${user.name || user.email} - ${user.role}`;
+  loadAdminData();
+}
+
+function showLoginShell(message = "") {
+  state.adminUser = null;
+  sessionStorage.removeItem(adminSessionKey);
+  els.loginPanel.classList.remove("hidden");
+  els.adminHeader.classList.add("hidden");
+  els.adminContent.classList.add("hidden");
+  if (message) {
+    setLoginMessage(message, "success");
+  }
+}
+
+function restoreAdminSession() {
+  const rawSession = sessionStorage.getItem(adminSessionKey);
+  if (!rawSession) {
+    showLoginShell();
+    return;
+  }
+
+  try {
+    const user = JSON.parse(rawSession);
+    if (isAdminUser(user)) {
+      showAdminShell(user);
+      return;
+    }
+  } catch {
+    sessionStorage.removeItem(adminSessionKey);
+  }
+
+  showLoginShell();
+}
+
+async function submitAdminLogin(event) {
+  event.preventDefault();
+  const formData = new FormData(els.loginForm);
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+
+  try {
+    setLoginMessage("Dang kiem tra tai khoan...", "");
+    const data = await callApi("login", { email, password });
+    if (!isAdminUser(data.user)) {
+      setLoginMessage("Tai khoan nay khong co quyen vao trang Admin.", "error");
+      return;
+    }
+
+    els.loginForm.reset();
+    setLoginMessage("");
+    showAdminShell(data.user);
+  } catch (error) {
+    setLoginMessage(error.message, "error");
+  }
 }
 
 async function loadAdminData() {
@@ -237,6 +319,8 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+els.loginForm.addEventListener("submit", submitAdminLogin);
+els.logoutButton.addEventListener("click", () => showLoginShell("Ban da dang xuat Admin."));
 els.refreshButton.addEventListener("click", loadAdminData);
 els.userForm.addEventListener("submit", submitUser);
 els.packageForm.addEventListener("submit", submitPackage);
@@ -266,4 +350,4 @@ document.addEventListener("click", (event) => {
   if (deleteCompanyButton) deleteRecord("deleteCompany", deleteCompanyButton.dataset.deleteCompany, "Da xoa cong ty.");
 });
 
-loadAdminData();
+restoreAdminSession();
