@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="DPUnity company workspace">
+  <title>DPUnity Workspace</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand-link" href="./index.html">DPUnity</a>
+      <nav>
+        <a href="./index.html">Portal</a>
+        <a href="./admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <section class="workspace">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Workspace</p>
+          <h1 id="workspaceCompanyName">Dang tai</h1>
+          <p class="muted" id="workspaceUser"></p>
+        </div>
+        <a class="secondary nav-button" href="./index.html">Doi cong ty</a>
+      </div>
+      <p class="message" id="workspaceMessage" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="workspace-tabs hidden" id="workspaceTabs">
+      <button class="tab active" type="button" data-view="dashboard">Dashboard</button>
+      <button class="tab" type="button" data-view="notes">Sticky Note</button>
+    </section>
+
+    <section class="workspace" id="dashboardView">
+      <div id="dashboardContent"></div>
+    </section>
+
+    <section class="workspace hidden" id="notesView">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Sticky Notes</p>
+          <h2>Ghi chu cong ty</h2>
+        </div>
+      </div>
+      <form class="inline-form" id="stickyForm">
+        <input type="hidden" name="id">
+        <label>Tieu de<input name="title" type="text" placeholder="Cong viec can nho"></label>
+        <label>Mau nen<input name="color" type="color" value="#fff7ad"></label>
+        <label>Quyen xem
+          <select name="visibility">
+            <option value="private">Chi minh toi</option>
+            <option value="company">Ca cong ty</option>
+          </select>
+        </label>
+        <label class="wide-field">Noi dung<textarea name="content" rows="4" required></textarea></label>
+        <div class="button-row">
+          <button class="primary" type="submit">Luu note</button>
+          <button class="secondary" id="resetStickyButton" type="button">Moi</button>
+        </div>
+      </form>
+      <div class="sticky-grid" id="stickyList"></div>
+    </section>
+  </main>
+
+  <script src="./config.js"></script>
+  <script src="./workspace.js"></script>
+</body>
+</html>

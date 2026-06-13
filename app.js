@@ -15,10 +15,7 @@ const elements = {
   welcomeEmail: document.querySelector("#welcomeEmail"),
   companySection: document.querySelector("#companySection"),
   companyList: document.querySelector("#companyList"),
-  refreshCompaniesButton: document.querySelector("#refreshCompaniesButton"),
-  featureSection: document.querySelector("#featureSection"),
-  featureContent: document.querySelector("#featureContent"),
-  selectedCompanyName: document.querySelector("#selectedCompanyName")
+  refreshCompaniesButton: document.querySelector("#refreshCompaniesButton")
 };
 
 const config = window.DPUNITY_API_CONFIG || {};
@@ -46,7 +43,6 @@ function switchMode(mode) {
   elements.forgotPasswordForm.classList.remove("active");
   elements.dashboard.classList.remove("active");
   elements.companySection.classList.add("hidden");
-  elements.featureSection.classList.add("hidden");
   setMessage("");
 }
 
@@ -121,7 +117,6 @@ async function loadCompanies() {
   }
 
   elements.companyList.innerHTML = "<p class=\"muted\">Dang tai danh sach cong ty...</p>";
-  elements.featureSection.classList.add("hidden");
 
   try {
     const data = await callApi("listCompaniesForUser", { userId: currentUser.id });
@@ -132,6 +127,7 @@ async function loadCompanies() {
 }
 
 function renderCompanies(companies) {
+  const selectedCompanyId = sessionStorage.getItem("dpunity.selected.company") || "";
   if (!companies.length) {
     elements.companyList.innerHTML = `
       <article class="data-card">
@@ -143,55 +139,25 @@ function renderCompanies(companies) {
   }
 
   elements.companyList.innerHTML = companies.map((company) => `
-    <article class="data-card">
-      <h3>${escapeHtml(company.name)}</h3>
-      <p class="muted">Root admin: ${escapeHtml(company.rootAdminName || "Chua gan")}</p>
-      <p class="pill-row">${company.packageCodes.map((code) => `<span class="pill">${escapeHtml(code)}</span>`).join("") || "<span class=\"pill muted-pill\">no package</span>"}</p>
-      <button class="primary choose-company" type="button" data-company-id="${escapeHtml(company.id)}">Chon cong ty</button>
-    </article>
+    <button class="company-row choose-company ${company.id === selectedCompanyId ? "active" : ""}" type="button" data-company-id="${escapeHtml(company.id)}">
+      <span>
+        <strong>${escapeHtml(company.name)}</strong>
+        <small>Root admin: ${escapeHtml(company.rootAdminName || "Chua gan")}</small>
+      </span>
+      <span class="company-meta">
+        ${company.id === selectedCompanyId ? "<span class=\"pill active-pill\">Dang chon</span>" : ""}
+        <span class="pill-row">${company.packageCodes.map((code) => `<span class="pill">${escapeHtml(code)}</span>`).join("") || "<span class=\"pill muted-pill\">no package</span>"}</span>
+      </span>
+    </button>
   `).join("");
 }
 
-async function chooseCompany(companyId) {
-  elements.featureSection.classList.remove("hidden");
-  elements.featureContent.innerHTML = "<p class=\"muted\">Dang tai workspace...</p>";
-
-  try {
-    const data = await callApi("getCompanyWorkspace", { companyId, userId: currentUser.id });
-    elements.selectedCompanyName.textContent = data.company.name;
-    renderWorkspace(data);
-  } catch (error) {
-    elements.featureContent.innerHTML = `<p class="message error">${escapeHtml(error.message)}</p>`;
-  }
-}
-
-function renderWorkspace(data) {
-  if (!data.hasWeb) {
-    elements.featureContent.innerHTML = `
-      <article class="intro-panel">
-        <h3>DPUnity Platform</h3>
-        <p>Cong ty nay chua duoc kich hoat goi Web. Day la trang gioi thieu chung cho den khi admin them package <strong>web</strong>.</p>
-      </article>
-    `;
-    return;
-  }
-
-  elements.featureContent.innerHTML = `
-    <div class="item-grid">
-      <article class="data-card">
-        <h3>Web Dashboard</h3>
-        <p class="muted">Goi Web da duoc kich hoat cho cong ty nay.</p>
-      </article>
-      <article class="data-card">
-        <h3>User Workspace</h3>
-        <p class="muted">Khu vuc tinh nang se duoc mo rong theo package trong database.</p>
-      </article>
-      <article class="data-card">
-        <h3>Enabled Packages</h3>
-        <p class="pill-row">${data.packages.map((pack) => `<span class="pill">${escapeHtml(pack.code)}</span>`).join("")}</p>
-      </article>
-    </div>
-  `;
+function chooseCompany(companyId, button) {
+  document.querySelectorAll(".company-row").forEach((item) => item.classList.remove("active"));
+  button.classList.add("active");
+  sessionStorage.setItem("dpunity.selected.company", companyId);
+  setMessage("Dang mo workspace...", "success");
+  window.location.href = `./workspace.html?companyId=${encodeURIComponent(companyId)}`;
 }
 
 function escapeHtml(value) {
@@ -217,7 +183,7 @@ elements.backToLoginButton.addEventListener("click", () => switchMode("login"));
 elements.companyList.addEventListener("click", (event) => {
   const button = event.target.closest(".choose-company");
   if (button) {
-    chooseCompany(button.dataset.companyId);
+    chooseCompany(button.dataset.companyId, button);
   }
 });
 

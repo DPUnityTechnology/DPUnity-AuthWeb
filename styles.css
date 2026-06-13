@@ -29,7 +29,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -260,7 +261,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 48px;
   padding: 0 14px;
@@ -271,8 +273,15 @@ select {
   color: var(--ink);
 }
 
+textarea {
+  min-height: 120px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
 }
@@ -491,6 +500,97 @@ th {
   gap: 12px;
 }
 
+.company-list {
+  display: grid;
+  gap: 10px;
+}
+
+.company-row {
+  width: 100%;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.company-row strong,
+.company-row small {
+  display: block;
+}
+
+.company-row small {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.company-row.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
+}
+
+.company-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.company-meta .pill-row {
+  margin: 0;
+}
+
+.active-pill {
+  background: var(--ink);
+  color: white;
+}
+
+.workspace-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wide-field {
+  grid-column: 1 / -1;
+}
+
+.sticky-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.sticky-note {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(23, 33, 31, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 16px 36px rgba(24, 38, 35, 0.1);
+}
+
+.sticky-note p {
+  white-space: pre-wrap;
+}
+
 .check-item {
   display: flex;
   align-items: center;
@@ -569,8 +669,14 @@ th {
   .inline-form,
   .company-form,
   .check-grid,
-  .item-grid {
+  .item-grid,
+  .sticky-grid {
     grid-template-columns: 1fr;
+  }
+
+  .company-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
