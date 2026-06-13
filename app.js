@@ -157,7 +157,7 @@ function chooseCompany(companyId, button) {
   button.classList.add("active");
   sessionStorage.setItem("dpunity.selected.company", companyId);
   setMessage("Dang mo workspace...", "success");
-  window.location.href = `./workspace.html?companyId=${encodeURIComponent(companyId)}`;
+  window.location.href = `./workspace.html?v=20260613-tabs&companyId=${encodeURIComponent(companyId)}`;
 }
 
 function escapeHtml(value) {
